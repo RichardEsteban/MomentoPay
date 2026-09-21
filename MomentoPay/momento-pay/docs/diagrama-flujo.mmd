@@ -1,0 +1,20 @@
+flowchart TD
+    A["1. El usuario sube la foto<br/>de su factura"] --> B["La IA lee el monto,<br/>el acreedor y el vencimiento"]
+    B --> C["2. El usuario bloquea su saldo<br/>en el contrato de Stellar<br/>(factura + colchón)"]
+    C --> D["3. El agente vigila el precio<br/>dentro del plazo elegido"]
+    D --> E{"¿Es un buen<br/>momento para pagar?"}
+    E -- "Sí, hay ahorro" --> F["El agente ejecuta el pago"]
+    E -- "Todavía no" --> G{"¿Se acabó<br/>el plazo?"}
+    G -- "No" --> D
+    G -- "Sí" --> H["El contrato paga<br/>a precio de mercado"]
+    F --> I["4. El acreedor cobra su factura completa"]
+    H --> I
+    I --> J["El agente recibe una comisión<br/>solo si hubo ahorro"]
+    I --> K["El usuario recibe de vuelta<br/>el resto del colchón"]
+
+    classDef user fill:#e8f1ff,stroke:#3b6fd4,color:#12305f
+    classDef ai fill:#fff4d6,stroke:#c98a00,color:#5b3d00
+    classDef chain fill:#e6f7ec,stroke:#2e9b57,color:#0f4225
+    class A,K user
+    class B,D,E,G ai
+    class C,F,H,I,J chain
