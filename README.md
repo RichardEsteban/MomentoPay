@@ -111,17 +111,6 @@ flowchart LR
 - Cada pago queda registrado en la red, así que cualquiera puede verificar qué pasó.
 - El usuario firma con su billetera **Freighter**.
 
-## Qué se construyó durante el hackathon
-
-- [ ] Contrato de pago con sus pruebas
-- [ ] Fuente de precios (simulada o real, según se confirme con los mentores)
-- [ ] Agente vigilante
-- [ ] Lectura de facturas y explicaciones con IA
-- [ ] Interfaz web con simulador de 2 semanas frente a pagar el primer día
-- [ ] Video demo
-
-Commit base: `[ ]` (repositorio nuevo, sin código previo)
-
 ## Evidencia en Stellar testnet
 
 | Elemento | Valor |
@@ -149,16 +138,15 @@ Commit base: `[ ]` (repositorio nuevo, sin código previo)
 `[ ] Completar con licencia y versión de cada uno`
 
 - Stellar y Soroban (contratos en Rust)
-- Qwen, de Alibaba Cloud (lectura de facturas y explicaciones)
+- Qwen, de Alibaba Cloud (lectura de facturas y explicaciones) ( Por el momento , aun viendo otras opciones)
 - Freighter (billetera)
 
 ## Equipo
 
 | Nombre | GitHub | Rol |
 |---|---|---|
-| `[ ]` | `[ ]` | `[ ]` |
+| `[ RICHARD ESTEBAN]` | `[https://github.com/RichardEsteban ]` | `[ CEO]` |
 
-Al menos un integrante es peruano o reside en Perú.
 
 ## Licencia
 
