@@ -39,6 +39,24 @@ pub struct Config {
     pub safety_margin_secs: u64,
 }
 
+/// Términos de una factura que no cambian su forma (a diferencia del monto o
+/// las partes involucradas). Se agrupan en un solo struct porque Soroban
+/// limita las funciones de contrato a 10 parámetros como máximo.
+#[contracttype]
+#[derive(Clone)]
+pub struct InvoicePolicy {
+    /// Vencimiento real de la factura (unix timestamp).
+    pub due_ts: u64,
+    /// Fin de la ventana en la que el agente puede optimizar (unix timestamp).
+    pub window_end: u64,
+    /// Ahorro mínimo, en puntos básicos, para que el agente pueda ejecutar antes de tiempo.
+    pub min_savings_bps: u32,
+    /// Deterioro máximo tolerado, en puntos básicos, antes de forzar la liquidación.
+    pub stop_loss_bps: u32,
+    /// Comisión del agente sobre el ahorro positivo, en puntos básicos.
+    pub agent_fee_bps: u32,
+}
+
 /// Una factura bloqueada en la bóveda.
 #[contracttype]
 #[derive(Clone)]

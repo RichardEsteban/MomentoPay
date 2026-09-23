@@ -14,7 +14,7 @@ mod test;
 use soroban_sdk::{contract, contractclient, contractimpl, token, Address, Env};
 
 use error::VaultError;
-use types::{Config, DataKey, Invoice, Quote, Reason, Settlement, Status};
+use types::{Config, DataKey, Invoice, InvoicePolicy, Quote, Reason, Settlement, Status};
 
 /// 100% en puntos básicos.
 const BPS_DENOM: i128 = 10_000;
@@ -68,7 +68,6 @@ impl InvoiceVault {
     /// - `window_end` deja al menos `safety_margin_secs` antes de `due_ts`.
     /// - El depósito cubre la factura más el colchón mínimo configurado.
     /// - La comisión del agente no supera el tope configurado.
-    #[allow(clippy::too_many_arguments)]
     pub fn create_invoice(
         env: Env,
         payer: Address,
@@ -77,20 +76,18 @@ impl InvoiceVault {
         token: Address,
         amount_pen_e7: i128,
         deposit: i128,
-        due_ts: u64,
-        window_end: u64,
-        min_savings_bps: u32,
-        stop_loss_bps: u32,
-        agent_fee_bps: u32,
+        policy: InvoicePolicy,
     ) -> u64 {
         payer.require_auth();
         let config = get_config(&env);
 
-        if agent_fee_bps > config.max_agent_fee_bps {
+        if policy.agent_fee_bps > config.max_agent_fee_bps {
             panic_with(&env, VaultError::InvalidFee);
         }
         let now = env.ledger().timestamp();
-        if window_end <= now || window_end + config.safety_margin_secs > due_ts {
+        if policy.window_end <= now
+            || policy.window_end + config.safety_margin_secs > policy.due_ts
+        {
             panic_with(&env, VaultError::InvalidWindow);
         }
         if amount_pen_e7 <= 0 || deposit <= 0 {
@@ -127,11 +124,11 @@ impl InvoiceVault {
             amount_pen_e7,
             base_rate_e7: rate_e7,
             deposit,
-            due_ts,
-            window_end,
-            min_savings_bps,
-            stop_loss_bps,
-            agent_fee_bps,
+            due_ts: policy.due_ts,
+            window_end: policy.window_end,
+            min_savings_bps: policy.min_savings_bps,
+            stop_loss_bps: policy.stop_loss_bps,
+            agent_fee_bps: policy.agent_fee_bps,
         };
         env.storage().persistent().set(&DataKey::Invoice(id), &invoice);
         id

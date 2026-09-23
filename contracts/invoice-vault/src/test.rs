@@ -1,13 +1,4 @@
 //! Pruebas de integración de los invariantes de seguridad de `InvoiceVault`.
-//!
-//! Nota para quien retome esto: estas pruebas se escribieron sin poder correr
-//! `cargo test` en la máquina donde se generaron (no había toolchain de Rust
-//! instalado). La lógica y el flujo deberían ser correctos, pero es probable
-//! que algún nombre de función de `soroban-sdk` (por ejemplo
-//! `register_stellar_asset_contract_v2` o `env.register`) haya cambiado de
-//! firma entre versiones. Si `cargo test` falla, el error suele apuntar
-//! directo a la línea equivocada; ajusta esa llamada según la versión de
-//! `soroban-sdk` que se resuelva en `Cargo.lock`.
 
 use super::*;
 use soroban_sdk::{
@@ -109,6 +100,23 @@ fn advance_time(env: &Env, secs: u64) {
     env.ledger().with_mut(|li| li.timestamp += secs);
 }
 
+/// Política por defecto para las pruebas: vencimiento en 14 días, ventana del
+/// agente de 7 días, y los parámetros de ahorro/comisión que pida cada caso.
+fn default_policy(
+    now: u64,
+    min_savings_bps: u32,
+    stop_loss_bps: u32,
+    agent_fee_bps: u32,
+) -> InvoicePolicy {
+    InvoicePolicy {
+        due_ts: now + 14 * DAY,
+        window_end: now + 7 * DAY,
+        min_savings_bps,
+        stop_loss_bps,
+        agent_fee_bps,
+    }
+}
+
 // --- Casos de prueba -------------------------------------------------------
 
 #[test]
@@ -122,12 +130,8 @@ fn agent_executes_when_savings_meet_the_threshold() {
         &s.agent,
         &s.token,
         &INVOICE_PEN,
-        &3_000_000_000,       // depósito: factura (~250) + colchón (~50)
-        &(now + 14 * DAY),    // vencimiento real
-        &(now + 7 * DAY),     // ventana del agente: 1 semana
-        &100u32,              // exige al menos 1% de ahorro
-        &1_500u32,            // stop-loss al 15%
-        &2_000u32,            // comisión del agente: 20% del ahorro
+        &3_000_000_000, // depósito: factura (~250) + colchón (~50)
+        &default_policy(now, 100, 1_500, 2_000),
     );
 
     // El precio mejora: ahora se necesitan menos USDC para pagar la misma factura.
@@ -165,11 +169,7 @@ fn anyone_can_settle_after_the_window_even_if_the_agent_never_acts() {
         &s.token,
         &INVOICE_PEN,
         &3_000_000_000,
-        &(now + 14 * DAY),
-        &(now + 7 * DAY),
-        &100u32,
-        &1_500u32,
-        &2_000u32,
+        &default_policy(now, 100, 1_500, 2_000),
     );
 
     // El precio no mejora nunca, y pasa el tiempo hasta el final de la ventana.
@@ -196,11 +196,7 @@ fn a_settled_invoice_cannot_be_settled_twice() {
         &s.token,
         &INVOICE_PEN,
         &3_000_000_000,
-        &(now + 14 * DAY),
-        &(now + 7 * DAY),
-        &100u32,
-        &1_500u32,
-        &2_000u32,
+        &default_policy(now, 100, 1_500, 2_000),
     );
 
     s.vault.pay_now(&id);
@@ -221,11 +217,7 @@ fn the_agent_cannot_jump_the_line_without_enough_savings() {
         &s.token,
         &INVOICE_PEN,
         &3_000_000_000,
-        &(now + 14 * DAY),
-        &(now + 7 * DAY),
-        &500u32, // exige 5% de ahorro
-        &1_500u32,
-        &2_000u32,
+        &default_policy(now, 500, 1_500, 2_000), // exige 5% de ahorro
     );
 
     // El precio casi no se mueve: muy por debajo del 5% exigido.
@@ -251,11 +243,7 @@ fn creating_an_invoice_needs_the_minimum_buffer() {
         &s.token,
         &INVOICE_PEN,
         &2_500_000_000,
-        &(now + 14 * DAY),
-        &(now + 7 * DAY),
-        &100u32,
-        &1_500u32,
-        &2_000u32,
+        &default_policy(now, 100, 1_500, 2_000),
     );
     assert!(result.is_err(), "sin colchón mínimo la factura no debería crearse");
 }
@@ -266,6 +254,13 @@ fn the_window_must_leave_room_before_the_due_date() {
     let now = s.env.ledger().timestamp();
 
     // La ventana termina el mismo día del vencimiento: no deja margen de seguridad.
+    let touching_due_date = InvoicePolicy {
+        due_ts: now + 7 * DAY,
+        window_end: now + 7 * DAY,
+        min_savings_bps: 100,
+        stop_loss_bps: 1_500,
+        agent_fee_bps: 2_000,
+    };
     let result = s.vault.try_create_invoice(
         &s.payer,
         &s.payee,
@@ -273,11 +268,7 @@ fn the_window_must_leave_room_before_the_due_date() {
         &s.token,
         &INVOICE_PEN,
         &3_000_000_000,
-        &(now + 7 * DAY),
-        &(now + 7 * DAY),
-        &100u32,
-        &1_500u32,
-        &2_000u32,
+        &touching_due_date,
     );
     assert!(result.is_err(), "la ventana no debería poder tocar el vencimiento");
 }

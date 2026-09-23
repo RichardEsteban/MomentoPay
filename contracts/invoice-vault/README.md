@@ -52,8 +52,7 @@ con `stellar contract invoke`, usando el contrato de precios de la Fase 2
 ```rust
 init(admin, oracle, max_oracle_age_secs, max_agent_fee_bps, min_buffer_bps, safety_margin_secs)
 
-create_invoice(payer, payee, agent, token, amount_pen_e7, deposit,
-               due_ts, window_end, min_savings_bps, stop_loss_bps, agent_fee_bps) -> u64
+create_invoice(payer, payee, agent, token, amount_pen_e7, deposit, policy: InvoicePolicy) -> u64
 
 top_up(id, amount)                 // solo el pagador: aumentar el colchón
 quote(id) -> Quote                 // lectura: cuánto costaría pagar hoy
@@ -61,6 +60,10 @@ execute(id, caller) -> Settlement  // el agente (con ahorro) o cualquiera (tras 
 pay_now(id) -> Settlement          // solo el pagador: pagar ya, sin esperar
 get_invoice(id) -> Invoice
 ```
+
+`InvoicePolicy` agrupa `due_ts`, `window_end`, `min_savings_bps`, `stop_loss_bps`
+y `agent_fee_bps` en un solo struct — Soroban limita las funciones de contrato
+a 10 parámetros como máximo, y `create_invoice` los superaba.
 
 Los montos en PEN (`amount_pen_e7`) y el precio del oráculo (`rate_e7`) usan
 7 decimales, igual que los tokens de Stellar: `1 PEN = 10_000_000`.
