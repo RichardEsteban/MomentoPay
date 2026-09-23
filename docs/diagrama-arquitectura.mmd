@@ -1,6 +1,6 @@
 flowchart LR
     U(["Usuario<br/>(billetera Freighter)"]) -- "sube factura y deposita" --> M["Interfaz web<br/>Momento Pay"]
-    M -- "lee la factura" --> IA["IA (Qwen)"]
+    M -- "lee la factura" --> IA["IA (Gemini)"]
     M -- "crea la factura<br/>y bloquea el saldo" --> S[("Contrato en<br/>Stellar testnet")]
     AG["Agente vigilante<br/>(regla de decisión)"] -- "revisa el precio<br/>y pide pagar" --> S
     AG -- "explica la decisión" --> IA

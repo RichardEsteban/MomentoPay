@@ -4,3 +4,4 @@
 node_modules
 .env
 *.wasm
+agent/audit.log.jsonl

@@ -136,8 +136,11 @@ MomentoPay/
 |---|---|
 | ID del contrato | [`CBKBFHC3D76MTOE5DMBJVS64HY2LBVTOSG2EKTJH7E2XWO2PJKQS4E5K`](https://lab.stellar.org/r/testnet/contract/CBKBFHC3D76MTOE5DMBJVS64HY2LBVTOSG2EKTJH7E2XWO2PJKQS4E5K) |
 | Transacción de despliegue | [`391b7158...04e8b06`](https://stellar.expert/explorer/testnet/tx/391b715850097588664522f61b7e9836e7bfbe1028f88138c1bc4986f04e8b06) |
-| Transacción de creación de factura | `[ ]` |
-| Transacción de pago | `[ ]` |
+| Contrato del oráculo simulado | [`CCH6FB4MCOQ6TPXKWBJFPLUU6ZQUKDBKHSYBQUGOB2CSDXB3SX7XMFZE`](https://lab.stellar.org/r/testnet/contract/CCH6FB4MCOQ6TPXKWBJFPLUU6ZQUKDBKHSYBQUGOB2CSDXB3SX7XMFZE) |
+| Transacción de creación de factura | [`4808d08f...3576885d`](https://stellar.expert/explorer/testnet/tx/4808d08fc6693c8b149e79a3b1c194cb81af1c0a7e312edcd324965d3576885d) |
+| Transacción de pago (ejecutada por el agente) | [`58113f00...c23d24`](https://stellar.expert/explorer/testnet/tx/58113f005253b18d56c4e9c76a34a8a16082f36bdce7a9649095dc52c7a23d24) |
+
+Resultado de esa liquidación: el acreedor recibió 243.59 USDC de prueba (la factura completa al precio mejorado), el agente cobró 1.28 USDC (20% del ahorro) y el pagador recuperó 55.13 USDC.
 
 ## Límites que declaramos
 

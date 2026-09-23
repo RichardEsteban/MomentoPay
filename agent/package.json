@@ -1,0 +1,15 @@
+{
+  "name": "momento-pay-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Agente vigilante de Momento Pay: decide cuándo pagar y explica sus decisiones con Gemini.",
+  "scripts": {
+    "test": "node --test",
+    "cli": "node --env-file=.env src/cli.js"
+  },
+  "dependencies": {
+    "@google/genai": "^1.0.0",
+    "@stellar/stellar-sdk": "^14.0.0"
+  }
+}

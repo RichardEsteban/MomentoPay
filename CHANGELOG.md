@@ -10,7 +10,7 @@ Registro simple de qué se construyó y cuándo, para el checkpoint y el README.
 
 ## Fase 2 — Agente y lectura de facturas con IA
 
-_Sin empezar._
+- **2026-09-23**: oráculo simulado (`contracts/mock-oracle`) desplegado y vault inicializado en testnet; cuentas de prueba (pagador, acreedor, agente) y token MPUSDC. Agente en Node (`agent/`): regla de decisión determinista con 7 pruebas, cliente del contrato, lectura de facturas y explicaciones con Gemini (con plantilla de respaldo), registro de auditoría y CLI. Prueba de extremo a extremo: factura creada, precio mejorado de 3.8 a 3.9, el agente esperó dos lecturas y pagó solo al bajar su umbral (ahorro 2.56%). Se fijó `Cargo.lock` con `ed25519-dalek` 2.2.0 para que `cargo test` funcione al clonar. Pendiente: probar la lectura de una factura real con Gemini (requiere `GEMINI_API_KEY`).
 
 ## Fase 3 — Interfaz, simulador y entregables finales
 

@@ -1,0 +1,18 @@
+{
+  "network": "testnet",
+  "rpcUrl": "https://soroban-testnet.stellar.org",
+  "networkPassphrase": "Test SDF Network ; September 2015",
+  "contracts": {
+    "invoiceVault": "CBKBFHC3D76MTOE5DMBJVS64HY2LBVTOSG2EKTJH7E2XWO2PJKQS4E5K",
+    "mockOracle": "CCH6FB4MCOQ6TPXKWBJFPLUU6ZQUKDBKHSYBQUGOB2CSDXB3SX7XMFZE",
+    "usdcToken": "CDKU7XWADWJ7EMAQRGN2MQN5PVJQQNS6QKLXPG6DCVQ27TDFHMB2VXEP"
+  },
+  "asset": "MPUSDC:GCPT7WYQTOVKEEFTDVG4WFB53JYTX2LLHGW7J4YJN4736HLPKL6ZYMYX",
+  "accounts": {
+    "admin": "GCPT7WYQTOVKEEFTDVG4WFB53JYTX2LLHGW7J4YJN4736HLPKL6ZYMYX",
+    "payer": "GBY5A6OQPZ3W5PRJWOMO3ESNEGRK765NJBZL2Z5MWIDFPKXQZXDKTUZF",
+    "payee": "GACZ7D66OFW6YALZ2LGJE4O5D6KWNDKW64RRMLUSIXIAE4CB6HGAG7WM",
+    "agent": "GDIXCF32DM3W43QM2AMDFYG4R65EUOEZTNXAWEQFKYQIRT6TOSOCC4BE"
+  },
+  "note": "Solo direcciones públicas de testnet. Las claves secretas viven en el almacén local del Stellar CLI y en agent/.env (ignorado por git)."
+}

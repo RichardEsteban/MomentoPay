@@ -19,12 +19,12 @@ Ventana de desarrollo: 19-25 de setiembre de 2026. Checkpoint intermedio obligat
 
 **Meta:** el agente vigilante consulta el contrato y decide cuándo pedir el pago, y una IA (Gemini) lee la foto de la factura y explica cada decisión en español.
 
-- [ ] Fuente de precios USDC/PEN: `MockOracle` simulado (o real, si algún mentor confirma uno disponible en testnet)
-- [ ] Agente vigilante en `agent/`: regla de decisión determinista (umbral que baja linealmente hasta el fin de la ventana)
-- [ ] Integración con Gemini (visión) para leer monto, acreedor y vencimiento desde una foto
-- [ ] Integración con Gemini para explicar cada decisión ("esperé porque...", "pagué porque...")
-- [ ] Registro de auditoría de las decisiones del agente
-- [ ] Pruebas de extremo a extremo contra el contrato desplegado en testnet
+- [x] Fuente de precios USDC/PEN: `MockOracle` simulado, desplegado en testnet (`contracts/mock-oracle`)
+- [x] Agente vigilante en `agent/`: regla determinista con umbral que baja hasta el mínimo del contrato (7 pruebas)
+- [x] Integración con Gemini (visión) para leer monto, acreedor y vencimiento desde una foto (`agent/src/gemini.js`; falta probarla con una factura real)
+- [x] Integración con Gemini para explicar cada decisión, con explicación de plantilla si Gemini no está disponible
+- [x] Registro de auditoría de las decisiones del agente (`agent/audit.log.jsonl`)
+- [x] Prueba de extremo a extremo en testnet: factura creada, precio mejorado, el agente pagó solo (ver README, evidencia)
 
 ## Fase 3 — Interfaz, simulador y entregables finales
 
