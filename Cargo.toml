@@ -5,6 +5,14 @@ members = ["contracts/invoice-vault"]
 [workspace.dependencies]
 soroban-sdk = "22.0.0"
 
+# soroban-env-host 22.1.3's test utilities pull in ed25519-dalek 3.x through a
+# loose semver range, and 3.x changed its CryptoRng bound in a way that breaks
+# against the rest of the (older) crypto dependency tree used elsewhere in the
+# same build. Pinning to the 2.x line that the rest of the tree already uses
+# fixes `cargo test` without touching our own code.
+[patch.crates-io]
+ed25519-dalek = "=2.2.0"
+
 [profile.release]
 opt-level = "z"
 overflow-checks = true
