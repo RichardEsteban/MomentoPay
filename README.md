@@ -5,7 +5,7 @@
 Momento Pay es un asistente de pagos con inteligencia artificial que paga tus facturas en el mejor momento posible, sin poner nunca en riesgo el dinero de la factura. Funciona sobre la red Stellar.
 
 > Proyecto de **Stellar Odyssey Perú 2026** · Track 1: AI Agents & Automated Workflows
-> Todo el proyecto corre en **testnet**: no usa dinero real ni promete rendimientos.
+> Todo el proyecto corre en **testnet**.
 
 ---
 
