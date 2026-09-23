@@ -1,0 +1,6 @@
+/target
+**/target
+.soroban
+node_modules
+.env
+*.wasm

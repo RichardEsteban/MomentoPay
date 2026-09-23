@@ -5,7 +5,9 @@
 Momento Pay es un asistente de pagos con inteligencia artificial que paga tus facturas en el mejor momento posible, sin poner nunca en riesgo el dinero de la factura. Funciona sobre la red Stellar.
 
 > Proyecto de **Stellar Odyssey Perú 2026** · Track 1: AI Agents & Automated Workflows
-> Todo el proyecto corre en **testnet**.
+> Todo el proyecto corre en **testnet**: no usa dinero real ni promete rendimientos.
+
+Estado: en desarrollo durante la semana del hackathon. Ver [PHASES.md](PHASES.md) para el plan de trabajo y [CHANGELOG.md](CHANGELOG.md) para el avance.
 
 ---
 
@@ -95,21 +97,38 @@ Azul: acciones del usuario · Amarillo: inteligencia artificial · Verde: contra
 
 ```mermaid
 flowchart LR
-    U(["Usuario"]) -- "sube factura y deposita" --> M["Momento Pay"]
+    U(["Usuario<br/>(billetera Freighter)"]) -- "sube factura y deposita" --> M["Interfaz web<br/>Momento Pay"]
     M -- "lee la factura" --> IA["IA (Qwen)"]
-    M -- "bloquea y paga" --> S[("Contrato en<br/>Stellar testnet")]
-    AG["Agente vigilante"] -- "revisa el precio<br/>y pide pagar" --> S
-    PR["Fuente de precios"] --> S
-    S -- "factura completa" --> AC(["Acreedor"])
-    S -- "ahorro y colchón" --> U
+    M -- "crea la factura<br/>y bloquea el saldo" --> S[("Contrato en<br/>Stellar testnet")]
+    AG["Agente vigilante<br/>(regla de decisión)"] -- "revisa el precio<br/>y pide pagar" --> S
+    AG -- "explica la decisión" --> IA
+    PR["Fuente de precios<br/>USDC/PEN"] --> S
+    S -- "paga la factura completa" --> AC(["Acreedor"])
+    S -- "ahorro y resto del colchón" --> U
+    S -- "comisión solo del ahorro" --> AG
 ```
+
+Los diagramas también están como archivos sueltos en [`docs/`](docs/) por si los necesitas en el video o el pitch.
 
 ## Cómo usa Stellar
 
-- Un **contrato inteligente** (Soroban) guarda el saldo bloqueado y aplica las reglas: solo paga al acreedor indicado, nunca después del vencimiento y nunca por debajo de lo acordado.
+- Un **contrato inteligente** (Soroban, Rust) guarda el saldo bloqueado y aplica las reglas: solo paga al acreedor indicado, nunca después del vencimiento y nunca por debajo de lo acordado.
 - El agente tiene **permisos limitados**: puede pedir el pago, pero no puede mover el dinero a ningún otro lugar.
 - Cada pago queda registrado en la red, así que cualquiera puede verificar qué pasó.
 - El usuario firma con su billetera **Freighter**.
+
+## Estructura del repositorio
+
+```
+MomentoPay/
+├── contracts/
+│   └── invoice-vault/     # Contrato Soroban (Fase 1)
+├── agent/                 # Agente vigilante + lectura de facturas con IA (Fase 2)
+├── web/                   # Interfaz y simulador (Fase 3)
+├── docs/                  # Diagramas y notas de arquitectura
+├── PHASES.md              # Plan de trabajo en 3 fases
+└── CHANGELOG.md           # Avance real, día a día
+```
 
 ## Evidencia en Stellar testnet
 
@@ -133,19 +152,19 @@ flowchart LR
 3. Pagos entre pymes y sus proveedores.
 4. Postulación a programas de financiamiento del ecosistema.
 
-## Tecnologías y créditos
-
+## Tecnologías
 
 - Stellar y Soroban (contratos en Rust)
-- Qwen, de Alibaba Cloud (lectura de facturas y explicaciones) ( Por el momento , aun viendo otras opciones)
+- Qwen, de Alibaba Cloud (lectura de facturas y explicaciones)
 - Freighter (billetera)
 
 ## Equipo
 
 | Nombre | GitHub | Rol |
 |---|---|---|
-| `[ RICHARD ESTEBAN]` | `[https://github.com/RichardEsteban ]` | `[ CEO]` |
+| `[ ]` | `[ ]` | `[ ]` |
 
+Al menos un integrante es peruano o reside en Perú.
 
 ## Licencia
 
