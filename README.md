@@ -135,7 +135,6 @@ flowchart LR
 
 ## Tecnologías y créditos
 
-`[ ] Completar con licencia y versión de cada uno`
 
 - Stellar y Soroban (contratos en Rust)
 - Qwen, de Alibaba Cloud (lectura de facturas y explicaciones) ( Por el momento , aun viendo otras opciones)
