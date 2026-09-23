@@ -12,17 +12,17 @@ Ventana de desarrollo: 19-25 de setiembre de 2026. Checkpoint intermedio obligat
 - [x] Tipos de datos: `Config`, `Invoice`, `Status`, `Reason`, `Quote`, `Settlement`
 - [x] Funciones: `init`, `create_invoice`, `top_up`, `quote`, `execute`, `pay_now`, `get_invoice`
 - [x] Pruebas unitarias de los invariantes de seguridad
-- [ ] Compilar a `wasm32v1-none` y correr las pruebas (requiere Rust + Stellar CLI instalados; ver `contracts/invoice-vault/README.md`)
+- [x] Compilar a `wasm32v1-none` y correr las pruebas — 6/6 pruebas pasan, `invoice_vault.wasm` generado
 - [ ] Desplegar en Stellar testnet y guardar el Contract ID
 
 ## Fase 2 — Agente y lectura de facturas con IA
 
-**Meta:** el agente vigilante consulta el contrato y decide cuándo pedir el pago, y una IA (Qwen) lee la foto de la factura y explica cada decisión en español.
+**Meta:** el agente vigilante consulta el contrato y decide cuándo pedir el pago, y una IA (Gemini) lee la foto de la factura y explica cada decisión en español.
 
 - [ ] Fuente de precios USDC/PEN: `MockOracle` simulado (o real, si algún mentor confirma uno disponible en testnet)
 - [ ] Agente vigilante en `agent/`: regla de decisión determinista (umbral que baja linealmente hasta el fin de la ventana)
-- [ ] Integración con Qwen VL para leer monto, acreedor y vencimiento desde una foto
-- [ ] Integración con Qwen para explicar cada decisión ("esperé porque...", "pagué porque...")
+- [ ] Integración con Gemini (visión) para leer monto, acreedor y vencimiento desde una foto
+- [ ] Integración con Gemini para explicar cada decisión ("esperé porque...", "pagué porque...")
 - [ ] Registro de auditoría de las decisiones del agente
 - [ ] Pruebas de extremo a extremo contra el contrato desplegado en testnet
 
