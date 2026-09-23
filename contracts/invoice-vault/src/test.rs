@@ -42,7 +42,6 @@ struct Setup {
     vault: InvoiceVaultClient<'static>,
     oracle: Address,
     token: Address,
-    token_admin: token::StellarAssetClient<'static>,
     payer: Address,
     payee: Address,
     agent: Address,
@@ -84,7 +83,6 @@ fn setup() -> Setup {
         vault,
         oracle,
         token,
-        token_admin,
         payer,
         payee,
         agent,
@@ -174,6 +172,10 @@ fn anyone_can_settle_after_the_window_even_if_the_agent_never_acts() {
 
     // El precio no mejora nunca, y pasa el tiempo hasta el final de la ventana.
     advance_time(&s.env, 7 * DAY);
+    // Un oráculo real seguiría reportando precios frescos; refrescamos el
+    // simulado para no confundir "ventana vencida" con "precio viejo"
+    // (el contrato rechaza precios más viejos que max_oracle_age_secs).
+    set_price(&s, RATE_3_8);
 
     // Un tercero cualquiera (no el agente) puede forzar la liquidación.
     let bystander = Address::generate(&s.env);
