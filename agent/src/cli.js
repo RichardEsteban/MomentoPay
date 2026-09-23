@@ -1,5 +1,5 @@
 import { watchInvoice } from './agent.js';
-import { createInvoice, deployment, getInvoice, quote, setPrice, tokenBalance, toPlain } from './chain.js';
+import { createInvoice, deployment, getInvoice, mint, quote, setPrice, tokenBalance, toPlain } from './chain.js';
 import { readInvoice } from './gemini.js';
 
 const [cmd, ...rest] = process.argv.slice(2);
@@ -16,7 +16,8 @@ const HELP = `Uso: npm run cli -- <comando>
   create-demo [--window-secs 600] Crea una factura de prueba de 950 PEN con 300 USDC bloqueados
   watch <id> [--poll 10] [--target-bps 300]   Vigila la factura y paga en el mejor momento
   read-invoice <foto.jpg>         Lee una factura con Gemini (requiere GEMINI_API_KEY)
-  balances                        Saldos de MPUSDC de las cuentas de prueba`;
+  balances                        Saldos de MPUSDC de las cuentas de prueba
+  fund <G...>                     Envía 300 MPUSDC de prueba a una cuenta (debe haber activado el token)`;
 
 async function main() {
   switch (cmd) {
@@ -57,6 +58,13 @@ async function main() {
     case 'read-invoice':
       show(await readInvoice(rest[0]));
       break;
+    case 'fund': {
+      const to = rest[0];
+      if (!to?.startsWith('G')) throw new Error('Indica la dirección Stellar: fund G...');
+      const r = await mint(to, 3_000_000_000n); // 300 MPUSDC de prueba
+      console.log(`300 MPUSDC de prueba enviados. Tx: https://stellar.expert/explorer/testnet/tx/${r.hash}`);
+      break;
+    }
     case 'balances': {
       const out = {};
       for (const [name, a] of Object.entries(deployment.accounts)) out[name] = (await tokenBalance(a)) ;

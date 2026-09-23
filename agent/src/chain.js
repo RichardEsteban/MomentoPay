@@ -89,6 +89,13 @@ export const tokenBalance = (account) =>
     args: [addr(account)],
   }).then((r) => r.value);
 
+/** Entrega MPUSDC de prueba a una cuenta (la cuenta debe haber activado el token antes). */
+export const mint = (to, amountE7) =>
+  call({
+    secret: secret('ADMIN_SECRET'), contractId: deployment.contracts.usdcToken, method: 'mint', send: true,
+    args: [addr(to), i128(amountE7)],
+  });
+
 /** Crea una factura como pagador. `policy` usa segundos unix y puntos básicos. */
 export const createInvoice = ({ amountPenE7, deposit, dueTs, windowEnd, minSavingsBps, stopLossBps, agentFeeBps }) =>
   call({

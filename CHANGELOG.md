@@ -14,4 +14,4 @@ Registro simple de qué se construyó y cuándo, para el checkpoint y el README.
 
 ## Fase 3 — Interfaz, simulador y entregables finales
 
-_Sin empezar._
+- **2026-09-23**: interfaz web (React + Vite) con creación de factura, seguimiento, "pagar ahora" y simulador. El simulador mostró que con un tipo de cambio aleatorio el usuario termina mejor en ~50% de los casos y peor en ~50% (mediana cercana a cero), por lo que se corrigió el README que prometía "nunca peor que pagar el día 1" y se replantearon las fuentes de ahorro (descuentos por pronto pago, mejor ejecución). Pendiente: probar la firma con Freighter, video demo, video pitch y formulario.

@@ -30,8 +30,8 @@ Ventana de desarrollo: 19-25 de setiembre de 2026. Checkpoint intermedio obligat
 
 **Meta:** una persona puede crear una factura, ver la cotización y el estado, y entender el ahorro frente a pagar el día 1. Entregables listos para subir a la plataforma del hackathon.
 
-- [ ] Interfaz web en `web/`: crear factura, conectar Freighter, ver línea de tiempo y estado
-- [ ] Simulador: compara pagar el día 1 contra el resultado del agente en una ventana de hasta 2 semanas
+- [x] Interfaz web en `web/`: crear factura, conectar Freighter, ver estado y pagar ahora (lecturas verificadas contra testnet; la firma con Freighter aún no se probó con la extensión)
+- [x] Simulador: compara pagar el día 1 contra el resultado del agente (5 pruebas); muestra que ~50% de los escenarios salen peor que pagar el día 1
 - [ ] Completar los `[ ]` del `README.md` (evidencia on-chain, equipo, commit base)
 - [ ] Grabar el video demo (sin límite de duración, evalúa el jurado)
 - [ ] Grabar el video pitch (máximo 3 minutos, para el Demo Day)

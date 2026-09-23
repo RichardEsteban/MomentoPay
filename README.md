@@ -28,12 +28,12 @@ Momento Pay resuelve ambos problemas con una idea simple:
 
 Si tienes 300 dólares y una factura de 250, esos 250 quedan bloqueados y garantizados para el acreedor. El agente solo trabaja con los 50 de colchón: busca el momento en que pagar te cueste menos, dentro de un plazo que tú eliges (1 día, 1 semana o 2 semanas) y **siempre antes del vencimiento**.
 
-Si aparece un buen momento, el agente paga y **el ahorro queda para ti**. Si no aparece, al terminar el plazo el sistema paga igual. La factura nunca queda sin pagar.
+Si aparece un buen momento, el agente paga y **el ahorro queda para ti**. Si no aparece, al terminar el plazo el sistema paga igual, al precio de ese día, que puede ser mejor o peor que el de hoy. La factura nunca queda sin pagar; lo que varía es cuánto te sobra del colchón.
 
 ## Beneficios
 
 **Para el usuario**
-- Ahorra en cada pago sin tener que vigilar el tipo de cambio.
+- Un agente vigila el tipo de cambio por ti y paga cuando el ahorro alcanza lo que definiste, sin que tengas que mirarlo.
 - Duerme tranquilo: la factura está garantizada por un contrato, no por la buena voluntad de un robot.
 - Puede pagar de inmediato en cualquier momento, si prefiere no esperar.
 
@@ -49,7 +49,7 @@ Si aparece un buen momento, el agente paga y **el ahorro queda para ti**. Si no 
 
 1. **Subes tu factura.** Una IA lee la foto y extrae el monto, quién cobra y la fecha de vencimiento.
 2. **Bloqueas tu saldo.** Depositas el monto de la factura más un colchón en un contrato inteligente. Eliges cuánto tiempo puede esperar el agente.
-3. **El agente vigila.** Revisa el precio cada cierto tiempo. Solo puede pagar si hacerlo no te sale peor que pagar el primer día.
+3. **El agente vigila.** Revisa el precio cada cierto tiempo. Mientras dure el plazo, solo puede pagar si el ahorro alcanza el mínimo que elegiste. Si el plazo se acaba o el precio empeora demasiado, el contrato paga igual a precio de mercado.
 4. **Se paga y se reparte.** El acreedor cobra su factura completa, el agente recibe una pequeña comisión solo si hubo ahorro, y **el resto vuelve a tu billetera**.
 
 Además, la IA te explica en español por qué esperó o por qué pagó ("esperé porque el precio mejoró 0.4%"), para que siempre entiendas qué hizo el agente.
@@ -64,7 +64,9 @@ Además, la IA te explica en español por qué esperó o por qué pagó ("esper�
 | Si el precio mejora 1% durante la espera | La factura cuesta ~247.5 USDC |
 | Ahorro para el usuario | ~2.5 USDC (menos la comisión del agente) |
 
-Los números son solo un ejemplo. El ahorro depende del mercado, es variable y **puede ser cero**. En ese caso, la factura se paga igual.
+Los números son solo un ejemplo. El resultado depende del mercado: puede ser un ahorro, cero, o **menos que si hubieras pagado el primer día** cuando el precio empeora durante la espera. En todos los casos la factura se paga completa.
+
+En el simulador de la interfaz web (300 escenarios de tipo de cambio aleatorio, ventana de 7 días) el usuario termina mejor que pagando el primer día en alrededor de la mitad de los casos y peor en la otra mitad, con una mediana cercana a cero. Con un tipo de cambio que se mueve al azar, esperar no crea ahorro por sí solo; por eso las fuentes de ahorro previstas son los descuentos por pronto pago del proveedor y la mejor ejecución de rutas de pago (ver "Próximos pasos").
 
 ## Diagrama general
 
