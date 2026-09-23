@@ -98,7 +98,7 @@ Azul: acciones del usuario · Amarillo: inteligencia artificial · Verde: contra
 ```mermaid
 flowchart LR
     U(["Usuario<br/>(billetera Freighter)"]) -- "sube factura y deposita" --> M["Interfaz web<br/>Momento Pay"]
-    M -- "lee la factura" --> IA["IA (Qwen)"]
+    M -- "lee la factura" --> IA["IA (Gemini)"]
     M -- "crea la factura<br/>y bloquea el saldo" --> S[("Contrato en<br/>Stellar testnet")]
     AG["Agente vigilante<br/>(regla de decisión)"] -- "revisa el precio<br/>y pide pagar" --> S
     AG -- "explica la decisión" --> IA
@@ -134,7 +134,8 @@ MomentoPay/
 
 | Elemento | Valor |
 |---|---|
-| ID del contrato | `[ ]` |
+| ID del contrato | [`CBKBFHC3D76MTOE5DMBJVS64HY2LBVTOSG2EKTJH7E2XWO2PJKQS4E5K`](https://lab.stellar.org/r/testnet/contract/CBKBFHC3D76MTOE5DMBJVS64HY2LBVTOSG2EKTJH7E2XWO2PJKQS4E5K) |
+| Transacción de despliegue | [`391b7158...04e8b06`](https://stellar.expert/explorer/testnet/tx/391b715850097588664522f61b7e9836e7bfbe1028f88138c1bc4986f04e8b06) |
 | Transacción de creación de factura | `[ ]` |
 | Transacción de pago | `[ ]` |
 
@@ -155,7 +156,7 @@ MomentoPay/
 ## Tecnologías
 
 - Stellar y Soroban (contratos en Rust)
-- Qwen, de Alibaba Cloud (lectura de facturas y explicaciones)
+- Gemini, de Google (lectura de facturas y explicaciones)
 - Freighter (billetera)
 
 ## Equipo

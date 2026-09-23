@@ -13,7 +13,7 @@ Ventana de desarrollo: 19-25 de setiembre de 2026. Checkpoint intermedio obligat
 - [x] Funciones: `init`, `create_invoice`, `top_up`, `quote`, `execute`, `pay_now`, `get_invoice`
 - [x] Pruebas unitarias de los invariantes de seguridad
 - [x] Compilar a `wasm32v1-none` y correr las pruebas — 6/6 pruebas pasan, `invoice_vault.wasm` generado
-- [ ] Desplegar en Stellar testnet y guardar el Contract ID
+- [x] Desplegar en Stellar testnet y guardar el Contract ID (`CBKBFHC3D76MTOE5DMBJVS64HY2LBVTOSG2EKTJH7E2XWO2PJKQS4E5K`)
 
 ## Fase 2 — Agente y lectura de facturas con IA
 
