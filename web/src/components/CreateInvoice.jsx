@@ -10,7 +10,7 @@ const WINDOWS = [
 const MIN_BUFFER_PCT = 5;   // colchón mínimo que exige el contrato
 const MAX_FEE_PCT = 20;     // tope de la comisión del agente
 
-export default function CreateInvoice({ address, onCreated }) {
+export default function CreateInvoice({ address, onCreated, onConnect }) {
   const [amountPen, setAmountPen] = useState(950);
   const [windowSecs, setWindowSecs] = useState(600);
   const [payee, setPayee] = useState(deployment.accounts.payee);
@@ -33,8 +33,7 @@ export default function CreateInvoice({ address, onCreated }) {
   }, [price, amountPen, bufferPct]);
 
   const problem =
-    !address ? 'Conecta tu billetera para continuar.'
-    : !(amountPen > 0) ? 'Escribe el monto de la factura.'
+    !(amountPen > 0) ? 'Escribe el monto de la factura.'
     : bufferPct < MIN_BUFFER_PCT ? `El colchón mínimo es ${MIN_BUFFER_PCT}%.`
     : feePct > MAX_FEE_PCT || feePct < 0 ? `La comisión debe estar entre 0 y ${MAX_FEE_PCT}%.`
     : '';
@@ -119,10 +118,19 @@ export default function CreateInvoice({ address, onCreated }) {
         </div>
       </details>
 
-      <button className="big" onClick={submit} disabled={busy || !!problem}>
-        {busy ? 'Confirma en Freighter…' : 'Bloquear y pagar en el mejor momento'}
-      </button>
-      {problem && <div className="hint" style={{ textAlign: 'center', marginTop: 8 }}>{problem}</div>}
+      {address ? (
+        <button className="big" onClick={submit} disabled={busy || !!problem}>
+          {busy ? 'Confirma en Freighter…' : 'Bloquear y pagar en el mejor momento'}
+        </button>
+      ) : (
+        <>
+          <button className="big" onClick={onConnect}>Conectar Freighter para continuar</button>
+          <div className="hint" style={{ textAlign: 'center', marginTop: 8 }}>
+            Se abrirá Freighter para que le des permiso. Necesitas la extensión en modo testnet.
+          </div>
+        </>
+      )}
+      {address && problem && <div className="hint" style={{ textAlign: 'center', marginTop: 8 }}>{problem}</div>}
       {error && <div className="msg err" role="alert">{error}</div>}
     </section>
   );
