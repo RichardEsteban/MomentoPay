@@ -2,7 +2,7 @@ import {
   Address, Asset, BASE_FEE, Contract, Operation, TransactionBuilder,
   nativeToScVal, rpc, scValToNative, xdr,
 } from '@stellar/stellar-sdk';
-import { getAddress, isAllowed, isConnected, requestAccess, signTransaction } from '@stellar/freighter-api';
+import { getAddress, isConnected, requestAccess, signTransaction } from '@stellar/freighter-api';
 import deployment from '../../../deployments/testnet.json';
 
 export { deployment };
@@ -74,18 +74,6 @@ export async function connectWallet() {
   if (access.error) throw new Error(access.error.message || 'Freighter no dio acceso');
   const { address } = await getAddress();
   return address;
-}
-
-/** Si Freighter ya dio permiso a esta página antes, devuelve la dirección sin volver a preguntar. */
-export async function restoreWallet() {
-  try {
-    const allowed = await isAllowed();
-    if (!allowed.isAllowed) return '';
-    const { address } = await getAddress();
-    return address || '';
-  } catch {
-    return '';
-  }
 }
 
 export const getBalance = async (address) => Number(await read(usdcToken, 'balance', [addr(address)])) / E7;

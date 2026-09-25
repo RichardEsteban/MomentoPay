@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import CreateInvoice from './components/CreateInvoice.jsx';
 import InvoiceStatus from './components/InvoiceStatus.jsx';
 import Simulator from './components/Simulator.jsx';
-import { connectWallet, deployment, enableToken, getBalance, restoreWallet, txUrl } from './lib/chain.js';
+import { connectWallet, deployment, enableToken, getBalance, txUrl } from './lib/chain.js';
 
 const STORAGE_KEY = 'momento-pay:invoice-ids';
 const loadIds = () => {
@@ -56,10 +56,6 @@ export default function App() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     if (address) refreshBalance(address);
   };
-
-  useEffect(() => {
-    restoreWallet().then((a) => { if (a) { setAddress(a); refreshBalance(a); } });
-  }, [refreshBalance]);
 
   useEffect(() => {
     if (!address) return undefined;
