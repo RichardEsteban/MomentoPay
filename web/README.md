@@ -4,9 +4,11 @@ Interfaz de Momento Pay (React + Vite). Lee y escribe en el contrato de Stellar 
 
 ## Qué tiene
 
-1. **Crea tu factura:** monto en PEN, plazo del agente (10 min para demo en vivo, 1 día, 1 semana o 2 semanas), colchón y comisión. Muestra el precio real del oráculo, cuánto cuesta la factura hoy y cuánto se bloquea.
-2. **Sigue tu factura:** estado, USDC bloqueados, costo hoy frente al día de creación, plazo restante y botón "Pagar ahora". Se actualiza cada 10 segundos.
-3. **Simulador:** miles de recorridos posibles del tipo de cambio, comparando pagar el día 1 contra dejar que el agente elija. Usa la misma regla de decisión que el agente real (`../agent/src/decision.js`) y muestra el reparto entre casos mejores y peores sin ocultar los malos.
+Tres pestañas, pensadas para que cada tarea quepa en una pantalla:
+
+1. **Pagar:** solo pide dos datos (monto en PEN y cuánto puede esperar el agente: 10 min para demo en vivo, 1 día, 1 semana o 2 semanas). Muestra cuánto cuesta hoy, cuánto se bloquea y cuánto es el margen que se devuelve. Margen, ahorro mínimo, comisión y quién cobra están en *Opciones avanzadas*.
+2. **Mi factura:** tus facturas como botones, estado en una línea (esperando o pagada), costo hoy frente al día de creación y **Pagar ahora**. Se actualiza cada 10 segundos.
+3. **Simulador:** 300 recorridos posibles del tipo de cambio comparados con pagar el día 1. Usa la misma regla que el agente real (`../agent/src/decision.js`) y muestra el reparto entre casos mejores y peores sin ocultar los malos.
 
 ## Cómo correrla
 
