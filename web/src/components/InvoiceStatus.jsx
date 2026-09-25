@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { E7, getInvoice, getQuote, payNow, statusName, txUrl } from '../lib/chain.js';
 
-const fmt = (n, d = 2) => Number(n).toFixed(d);
+const fmt = (n) => Number(n).toFixed(2);
 
 function timeLeft(secs) {
   if (secs <= 0) return 'terminó';
@@ -9,11 +9,12 @@ function timeLeft(secs) {
   return d ? `${d} d ${h} h` : h ? `${h} h ${m} min` : `${m} min ${secs % 60} s`;
 }
 
-export default function InvoiceStatus({ address, ids, selected, setSelected }) {
+export default function InvoiceStatus({ address, ids, selected, setSelected, goPay }) {
   const [data, setData] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [paid, setPaid] = useState(null);
+  const [other, setOther] = useState('');
 
   const load = useCallback(async () => {
     if (selected === '') return;
@@ -21,11 +22,12 @@ export default function InvoiceStatus({ address, ids, selected, setSelected }) {
       const [invoice, quote] = await Promise.all([getInvoice(selected), getQuote(selected)]);
       setData({ invoice, quote }); setError('');
     } catch (e) {
-      setData(null); setError(`No se pudo leer la factura ${selected}: ${e.message}`);
+      setData(null); setError(`No encontramos la factura ${selected}.`);
     }
   }, [selected]);
 
   useEffect(() => {
+    setData(null); setPaid(null);
     load();
     const t = setInterval(load, 10000);
     return () => clearInterval(t);
@@ -40,59 +42,73 @@ export default function InvoiceStatus({ address, ids, selected, setSelected }) {
 
   const inv = data?.invoice, q = data?.quote;
   const settled = inv && statusName(inv.status) === 'Settled';
-  const baseRequired = inv ? Math.ceil((Number(inv.amount_pen_e7) * E7) / Number(inv.base_rate_e7)) / E7 : 0;
   const left = inv ? Number(inv.window_end) - Math.floor(Date.now() / 1000) : 0;
   const isPayer = inv && address && inv.payer === address;
+  const pct = q ? q.savings_bps / 100 : 0;
+
+  const chips = [...new Set([...ids, selected].filter((x) => x !== ''))];
 
   return (
     <section className="card">
-      <h2>2. Sigue tu factura</h2>
-      <p className="sub">Se actualiza sola cada 10 segundos.</p>
-      <div className="grid">
-        <div>
-          <label>Número de factura</label>
-          <input list="ids" value={selected} onChange={(e) => setSelected(e.target.value.trim())} placeholder="Ej. 0" />
-          <datalist id="ids">{ids.map((i) => <option key={i} value={i} />)}</datalist>
-        </div>
+      <div className="ids" role="group" aria-label="Tus facturas">
+        {chips.map((i) => (
+          <button key={i} aria-pressed={selected === i} onClick={() => setSelected(i)}>Factura {i}</button>
+        ))}
+        <input
+          value={other} inputMode="numeric" placeholder="Otra n.º" aria-label="Buscar otra factura por número"
+          onChange={(e) => setOther(e.target.value.replace(/\D/g, ''))}
+          onKeyDown={(e) => { if (e.key === 'Enter' && other) { setSelected(other); setOther(''); } }}
+        />
       </div>
 
-      {error && <div className="err">{error}</div>}
+      {selected === '' && (
+        <div className="empty">
+          Todavía no tienes facturas.<br />
+          <button style={{ marginTop: 10 }} onClick={goPay}>Crear mi primera factura</button>
+        </div>
+      )}
+      {error && <div className="msg err" role="alert">{error}</div>}
+
       {inv && q && (
         <>
-          <div className="stats">
-            <div className="stat"><b>{settled ? 'Pagada' : 'Abierta'}</b><span>Estado</span></div>
-            <div className="stat"><b>{fmt(Number(inv.deposit) / E7)}</b><span>USDC bloqueados</span></div>
-            <div className="stat"><b>{fmt(baseRequired)}</b><span>USDC que costaba el día que la creaste</span></div>
-            {!settled && (
-              <>
-                <div className="stat"><b>{fmt(Number(q.required_usdc) / E7)}</b><span>USDC que cuesta hoy</span></div>
-                <div className={`stat ${q.savings_bps >= 0 ? 'good' : 'bad'}`}>
-                  <b>{q.savings_bps >= 0 ? '+' : ''}{fmt(q.savings_bps / 100)}%</b><span>vs. el día que la creaste</span>
-                </div>
-                <div className="stat"><b>{timeLeft(left)}</b><span>de plazo para el agente</span></div>
-              </>
-            )}
+          <div className="state">
+            <span className={`badge ${settled ? 'paid' : 'open'}`}>{settled ? 'Pagada' : 'Esperando el mejor momento'}</span>
+            {!settled && <span className="hint">Plazo: {timeLeft(left)}</span>}
           </div>
 
-          {!settled && q.can_agent_execute && (
-            <div className="ok">El ahorro actual ya supera el mínimo que elegiste: el agente puede pagar cuando su umbral lo decida.</div>
+          {settled ? (
+            <p className="line">
+              <b>{fmt(Number(inv.deposit) / E7)} USDC</b> estaban bloqueados. La factura se pagó completa y el resto volvió a la billetera de quien la creó.
+            </p>
+          ) : (
+            <div className="sum">
+              <div><small>Bloqueado</small><b>{fmt(Number(inv.deposit) / E7)}</b><small>USDC</small></div>
+              <div><small>Hoy cuesta</small><b>{fmt(Number(q.required_usdc) / E7)}</b><small>USDC</small></div>
+              <div>
+                <small>Frente al día que la creaste</small>
+                <b className={`delta ${pct >= 0 ? 'good' : 'bad'}`}>{pct >= 0 ? '+' : ''}{pct.toFixed(2)}%</b>
+                <small>{pct >= 0 ? 'más barata' : 'más cara'}</small>
+              </div>
+            </div>
           )}
+
           {!settled && q.stop_loss_hit && (
-            <div className="note">El precio empeoró más de lo tolerado: el sistema pagará de inmediato para proteger la factura.</div>
+            <div className="msg warn">El precio empeoró más de lo tolerado: se pagará de inmediato para proteger la factura.</div>
           )}
-          {!settled && left <= 0 && (
-            <div className="note">Terminó el plazo: cualquiera puede liquidar la factura y se paga al precio de hoy.</div>
+          {!settled && !q.stop_loss_hit && left <= 0 && (
+            <div className="msg warn">Terminó el plazo: cualquiera puede liquidar la factura al precio de hoy.</div>
+          )}
+          {!settled && q.can_agent_execute && left > 0 && (
+            <div className="msg ok">El precio ya conviene: el agente puede pagar cuando su regla lo decida.</div>
           )}
 
           {!settled && (
-            <div className="row">
-              <button className="ghost" onClick={pay} disabled={busy || !isPayer}>
-                {busy ? 'Firmando…' : 'Pagar ahora, sin esperar'}
-              </button>
-              {!isPayer && <span style={{ color: 'var(--muted)', fontSize: 14 }}>Solo quien creó la factura puede pagarla ahora.</span>}
-            </div>
+            <button className="ghost big" style={{ marginTop: 14 }} onClick={pay} disabled={busy || !isPayer}>
+              {busy ? 'Confirma en Freighter…' : 'Pagar ahora, sin esperar'}
+            </button>
           )}
-          {paid && <div className="ok">Pagada. <a href={txUrl(paid.hash)} target="_blank" rel="noreferrer">Ver transacción</a></div>}
+          {!settled && !isPayer && <div className="hint" style={{ textAlign: 'center', marginTop: 6 }}>Solo quien creó la factura puede pagarla ahora.</div>}
+          {paid && <div className="msg ok">Pagada. <a href={txUrl(paid.hash)} target="_blank" rel="noreferrer">Ver transacción</a></div>}
         </>
       )}
     </section>

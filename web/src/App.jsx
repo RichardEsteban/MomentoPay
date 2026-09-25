@@ -9,7 +9,14 @@ const loadIds = () => {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? []; } catch { return []; }
 };
 
+const TABS = [
+  { id: 'pay', label: 'Pagar' },
+  { id: 'invoice', label: 'Mi factura' },
+  { id: 'sim', label: 'Simulador' },
+];
+
 export default function App() {
+  const [tab, setTab] = useState('pay');
   const [address, setAddress] = useState('');
   const [balance, setBalance] = useState(null);
   const [ids, setIds] = useState(loadIds);
@@ -31,14 +38,21 @@ export default function App() {
     setBusy(true); setMsg(null);
     try {
       const r = await enableToken(address);
-      setMsg({ kind: 'ok', text: <>MPUSDC activado en tu cuenta. <a href={txUrl(r.hash)} target="_blank" rel="noreferrer">Ver transacción</a></> });
+      setMsg({ kind: 'ok', text: <>Listo, MPUSDC activado. <a href={txUrl(r.hash)} target="_blank" rel="noreferrer">Ver transacción</a></> });
     } catch (e) { setMsg({ kind: 'err', text: e.message }); }
     finally { setBusy(false); }
   }
 
-  const onCreated = (id) => {
+  const copy = (text, what) =>
+    navigator.clipboard.writeText(text).then(() => setMsg({ kind: 'ok', text: `${what} copiado.` }));
+
+  const onCreated = (id, hash) => {
     const next = [...new Set([...ids, id])];
-    setIds(next); setSelected(id);
+    setIds(next); setSelected(id); setTab('invoice');
+    setMsg({
+      kind: 'ok',
+      text: <>Factura {id} creada y fondos bloqueados. <a href={txUrl(hash)} target="_blank" rel="noreferrer">Ver transacción</a>. Para que el agente la vigile: <code>npm run cli -- watch {id}</code></>,
+    });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     if (address) refreshBalance(address);
   };
@@ -49,51 +63,54 @@ export default function App() {
     return () => clearInterval(t);
   }, [address, refreshBalance]);
 
+  const needsFunds = address && balance === 0;
+
   return (
     <div className="wrap">
       <header className="top">
         <div className="brand">
           <h1>Momento Pay</h1>
-          <p>Tu factura siempre se paga. Tú ganas el momento.</p>
+          <p>Tu factura siempre se paga.</p>
         </div>
         <div className="wallet">
           {address ? (
             <>
-              <button
-                className="chip"
-                style={{ border: 0, cursor: 'pointer' }}
-                title={`Tu dirección: ${address}\nClic para copiarla`}
-                onClick={() => navigator.clipboard.writeText(address).then(() => setMsg({ kind: 'ok', text: `Dirección copiada: ${address}` }))}
-              >
-                {address.slice(0, 5)}…{address.slice(-4)} · copiar
+              <button className="chip" title={`${address}\nClic para copiar`} onClick={() => copy(address, 'Dirección')}>
+                {address.slice(0, 4)}…{address.slice(-4)}
               </button>
               <span className="chip">{balance === null ? '…' : balance.toFixed(2)} MPUSDC</span>
-              <button className="ghost" onClick={activate} disabled={busy}>Activar MPUSDC</button>
             </>
           ) : (
-            <button onClick={connect}>Conectar Freighter</button>
+            <button onClick={connect} style={{ height: 38 }}>Conectar Freighter</button>
           )}
         </div>
       </header>
 
-      {msg && <div className={msg.kind === 'ok' ? 'ok' : 'err'} style={{ marginTop: 0, marginBottom: 20 }}>{msg.text}</div>}
-
-      {address && balance === 0 && (
-        <div className="note" style={{ marginTop: 0, marginBottom: 20 }}>
-          Tu cuenta no tiene MPUSDC de prueba. Pulsa <b>Activar MPUSDC</b> y luego pide fondos de prueba con:{' '}
-          <code>npm run cli -- fund {address}</code> (desde la carpeta <code>agent/</code>).
+      {needsFunds && (
+        <div className="msg warn" style={{ marginTop: 0, marginBottom: 12 }}>
+          <b>Primeros pasos:</b> 1) <button className="ghost" style={{ height: 30, padding: '0 10px' }} onClick={activate} disabled={busy}>Activar MPUSDC</button>{' '}
+          2) pide fondos de prueba con{' '}
+          <button className="ghost" style={{ height: 30, padding: '0 10px' }} onClick={() => copy(`npm run cli -- fund ${address}`, 'Comando')}>copiar comando</button>{' '}
+          y pégalo en la carpeta <code>agent/</code>.
         </div>
       )}
+      {msg && (
+        <div className={`msg ${msg.kind}`} role="status" style={{ marginTop: 0, marginBottom: 12 }}>{msg.text}</div>
+      )}
 
-      <CreateInvoice address={address} onCreated={onCreated} />
-      <InvoiceStatus address={address} ids={ids} selected={selected} setSelected={setSelected} />
-      <Simulator />
+      <nav className="tabs" role="tablist" aria-label="Secciones">
+        {TABS.map((t) => (
+          <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}>{t.label}</button>
+        ))}
+      </nav>
 
-      <p style={{ color: 'var(--muted)', fontSize: 13 }}>
-        Todo corre en Stellar testnet con dinero de prueba. Contrato:{' '}
-        <a href={`https://lab.stellar.org/r/testnet/contract/${deployment.contracts.invoiceVault}`} target="_blank" rel="noreferrer">
-          {deployment.contracts.invoiceVault.slice(0, 8)}…
-        </a>
+      {tab === 'pay' && <CreateInvoice address={address} onCreated={onCreated} />}
+      {tab === 'invoice' && <InvoiceStatus address={address} ids={ids} selected={selected} setSelected={setSelected} goPay={() => setTab('pay')} />}
+      {tab === 'sim' && <Simulator />}
+
+      <p style={{ color: 'var(--muted)', fontSize: 12, textAlign: 'center', marginTop: 18 }}>
+        Stellar testnet · dinero de prueba ·{' '}
+        <a href={`https://lab.stellar.org/r/testnet/contract/${deployment.contracts.invoiceVault}`} target="_blank" rel="noreferrer">contrato</a>
       </p>
     </div>
   );
