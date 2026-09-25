@@ -153,6 +153,8 @@ Resultado de esa liquidación: el acreedor recibió 243.59 USDC de prueba (la fa
 
 ## Próximos pasos
 
+- **WhatsApp real.** La pestaña *Chat* de la web ya simula la experiencia (foto de la factura, propuesta, confirmación y aviso de pago). Para conectarla a WhatsApp de verdad: sandbox de Twilio para pruebas o la API oficial de WhatsApp Business (Meta) para producción, con Gemini leyendo la foto y el agente enviando los avisos. La firma seguiría en la billetera del usuario mediante un enlace a la web, porque WhatsApp no puede firmar transacciones.
+
 1. Descuentos por pronto pago definidos por el proveedor.
 2. Retiro del ahorro a Yape o cuenta bancaria.
 3. Pagos entre pymes y sus proveedores.

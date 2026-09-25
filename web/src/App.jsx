@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import CreateInvoice from './components/CreateInvoice.jsx';
 import InvoiceStatus from './components/InvoiceStatus.jsx';
+import WhatsAppSim from './components/WhatsAppSim.jsx';
 import Simulator from './components/Simulator.jsx';
 import { connectWallet, deployment, enableToken, getBalance, txUrl } from './lib/chain.js';
 
@@ -10,13 +11,14 @@ const loadIds = () => {
 };
 
 const TABS = [
+  { id: 'chat', label: 'Chat' },
   { id: 'pay', label: 'Pagar' },
   { id: 'invoice', label: 'Mi factura' },
   { id: 'sim', label: 'Simulador' },
 ];
 
 export default function App() {
-  const [tab, setTab] = useState('pay');
+  const [tab, setTab] = useState('chat');
   const [address, setAddress] = useState('');
   const [balance, setBalance] = useState(null);
   const [ids, setIds] = useState(loadIds);
@@ -45,6 +47,12 @@ export default function App() {
 
   const copy = (text, what) =>
     navigator.clipboard.writeText(text).then(() => setMsg({ kind: 'ok', text: `${what} copiado.` }));
+
+  const rememberId = (id) => {
+    const next = [...new Set([...ids, id])];
+    setIds(next); setSelected(id);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  };
 
   const onCreated = (id, hash) => {
     const next = [...new Set([...ids, id])];
@@ -98,12 +106,13 @@ export default function App() {
         <div className={`msg ${msg.kind}`} role="status" style={{ marginTop: 0, marginBottom: 12 }}>{msg.text}</div>
       )}
 
-      <nav className="tabs" role="tablist" aria-label="Secciones">
+      <nav className="tabs four" role="tablist" aria-label="Secciones">
         {TABS.map((t) => (
           <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}>{t.label}</button>
         ))}
       </nav>
 
+      {tab === 'chat' && <WhatsAppSim address={address} onConnect={connect} onInvoice={rememberId} refreshBalance={refreshBalance} />}
       {tab === 'pay' && <CreateInvoice address={address} onCreated={onCreated} onConnect={connect} />}
       {tab === 'invoice' && <InvoiceStatus address={address} ids={ids} selected={selected} setSelected={setSelected} goPay={() => setTab('pay')} />}
       {tab === 'sim' && <Simulator />}

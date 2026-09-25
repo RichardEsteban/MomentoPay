@@ -119,3 +119,61 @@ code { background: #fff; border: 1px solid var(--line); padding: 1px 6px; border
   .sum b { font-size: 16px; }
   .adv { grid-template-columns: 1fr; }
 }
+
+/* Simulación de chat estilo WhatsApp */
+.tabs.four { grid-template-columns: repeat(4, 1fr); }
+.wa {
+  display: flex; flex-direction: column; height: min(640px, calc(100vh - 210px)); min-height: 460px;
+  max-width: 440px; margin: 0 auto; border-radius: 18px; overflow: hidden; box-shadow: var(--shadow); background: #ece5dd;
+}
+.wa-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #075e54; color: #fff; }
+.wa-head b { display: block; font-size: 16px; line-height: 1.2; }
+.wa-head small { font-size: 12px; opacity: 0.85; }
+.wa-avatar {
+  width: 38px; height: 38px; border-radius: 50%; background: #dff5e9; color: #075e54;
+  display: grid; place-items: center; font-weight: 800; font-size: 18px;
+}
+.wa-sim { background: #fff8d6; color: #6a5a12; font-size: 11.5px; text-align: center; padding: 5px 10px; }
+.wa-body {
+  flex: 1; overflow-y: auto; padding: 12px 10px; display: flex; flex-direction: column; gap: 6px;
+  background-color: #ece5dd;
+  background-image: radial-gradient(#e0d8cd 1px, transparent 1px); background-size: 18px 18px;
+}
+.wa-row { display: flex; flex-direction: column; max-width: 84%; }
+.wa-row.bot { align-self: flex-start; align-items: flex-start; }
+.wa-row.me { align-self: flex-end; align-items: flex-end; }
+.wa-row.sys { align-self: center; max-width: 92%; }
+.wa-bubble {
+  position: relative; padding: 6px 8px 16px; border-radius: 10px; font-size: 14.5px; line-height: 1.35;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.12); word-break: break-word; min-width: 64px;
+}
+.wa-row.bot .wa-bubble { background: #fff; border-top-left-radius: 2px; }
+.wa-row.me .wa-bubble { background: #d9fdd3; border-top-right-radius: 2px; }
+.wa-bubble img { display: block; width: 210px; max-width: 100%; border-radius: 8px; margin-bottom: 4px; }
+.wa-bubble a { color: #027eb5; font-weight: 600; }
+.wa-time { position: absolute; right: 8px; bottom: 2px; font-size: 10.5px; color: #667781; }
+.wa-ticks { font-style: normal; color: #53bdeb; }
+.wa-system {
+  background: #fdf3c4; color: #54470c; font-size: 12px; padding: 5px 10px; border-radius: 8px; text-align: center;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+.wa-status { margin-top: 6px; padding: 6px 8px; border-radius: 8px; background: #e7f6ee; color: #145f40; font-size: 13px; }
+.wa-buttons { display: flex; flex-direction: column; gap: 4px; width: 100%; margin-top: 4px; min-width: 210px; }
+.wa-buttons button {
+  height: auto; min-height: 38px; padding: 8px 12px; border-radius: 10px; background: #fff; color: #027eb5;
+  font-weight: 600; font-size: 14px; border: 0; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.12);
+}
+.wa-buttons button:hover:not(:disabled) { background: #f0f7fa; }
+.wa-buttons button:disabled { color: #9aa7ad; opacity: 1; cursor: default; }
+.wa-typing { display: flex; gap: 4px; padding: 10px 12px; min-width: 0; }
+.wa-typing i { width: 7px; height: 7px; border-radius: 50%; background: #9aa7ad; animation: wa-dot 1.2s infinite; }
+.wa-typing i:nth-child(2) { animation-delay: 0.2s; }
+.wa-typing i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes wa-dot { 0%, 60%, 100% { opacity: 0.3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-3px); } }
+.wa-input { display: flex; align-items: center; gap: 6px; padding: 8px; background: #f0f2f5; }
+.wa-input input { flex: 1; height: 40px; border-radius: 20px; border: 0; padding: 0 14px; }
+.wa-input button { width: 40px; height: 40px; padding: 0; border-radius: 50%; font-size: 17px; }
+.wa-attach { background: transparent !important; color: #54656f !important; }
+.wa-send { background: #00a884; }
+.wa-send:hover:not(:disabled) { background: #008f72; }
+@media (prefers-reduced-motion: reduce) { .wa-typing i { animation: none; opacity: 0.6; } }
