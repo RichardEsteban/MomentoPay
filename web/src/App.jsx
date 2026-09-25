@@ -59,7 +59,14 @@ export default function App() {
         <div className="wallet">
           {address ? (
             <>
-              <span className="chip">{address.slice(0, 5)}…{address.slice(-4)}</span>
+              <button
+                className="chip"
+                style={{ border: 0, cursor: 'pointer' }}
+                title={`Tu dirección: ${address}\nClic para copiarla`}
+                onClick={() => navigator.clipboard.writeText(address).then(() => setMsg({ kind: 'ok', text: `Dirección copiada: ${address}` }))}
+              >
+                {address.slice(0, 5)}…{address.slice(-4)} · copiar
+              </button>
               <span className="chip">{balance === null ? '…' : balance.toFixed(2)} MPUSDC</span>
               <button className="ghost" onClick={activate} disabled={busy}>Activar MPUSDC</button>
             </>

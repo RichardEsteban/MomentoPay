@@ -158,17 +158,52 @@ Resultado de esa liquidación: el acreedor recibió 243.59 USDC de prueba (la fa
 3. Pagos entre pymes y sus proveedores.
 4. Postulación a programas de financiamiento del ecosistema.
 
-## Tecnologías
+## Qué se construyó durante el hackathon
 
-- Stellar y Soroban (contratos en Rust)
-- Gemini, de Google (lectura de facturas y explicaciones)
-- Freighter (billetera)
+Ventana de desarrollo: 19 al 25 de setiembre de 2026. **Commit base: `9e2243e`** (repositorio nuevo; solo contenía un README inicial). Todo el código de este repositorio se escribió dentro de la ventana.
+
+| Parte | Qué es | Estado |
+|---|---|---|
+| `contracts/invoice-vault` | Contrato Soroban con bloqueo de fondos, ventana, pago del agente o por plazo, stop-loss y reparto | Desplegado en testnet, 6 pruebas |
+| `contracts/mock-oracle` | Oráculo simulado USDC/PEN | Desplegado en testnet, 1 prueba |
+| `agent/` | Agente vigilante con regla determinista, cliente del contrato, Gemini y auditoría | Probado de extremo a extremo en testnet, 7 pruebas |
+| `web/` | Interfaz con Freighter y simulador | Lecturas verificadas contra testnet, 5 pruebas del simulador |
+
+Pendiente y declarado: la lectura de una factura real con Gemini y la firma con Freighter desde la interfaz no se probaron de extremo a extremo antes de esta entrega.
+
+## Cómo probarlo
+
+```bash
+# Contratos (Rust 1.85+, target wasm32v1-none)
+cargo test --workspace
+
+# Agente y simulador (Node 20+)
+cd agent && npm ci && npm test
+cd ../web && npm ci && npm test && npm run dev
+```
+
+Detalles en [contracts/invoice-vault/README.md](contracts/invoice-vault/README.md), [agent/README.md](agent/README.md) y [web/README.md](web/README.md).
+
+## Código y servicios de terceros
+
+Ninguna parte del código se copió de otros proyectos. Se usan estas librerías y servicios:
+
+| Componente | Versión | Licencia | Uso |
+|---|---|---|---|
+| soroban-sdk | 22.0.11 | Apache-2.0 | Contratos inteligentes |
+| @stellar/stellar-sdk | 14.6.1 | Apache-2.0 | Llamadas al contrato desde el agente y la web |
+| @stellar/freighter-api | 5.0.0 | Apache-2.0 | Firma con la billetera |
+| @google/genai | 1.52.0 | Apache-2.0 | Lectura de facturas y explicaciones (Gemini) |
+| react, react-dom | 19.3.0 | MIT | Interfaz |
+| vite, @vitejs/plugin-react | 7.3.6, 5.2.0 | MIT | Compilación de la web |
+
+Servicios: Stellar testnet (con Friendbot para fondos de prueba) y la API de Gemini de Google.
 
 ## Equipo
 
 | Nombre | GitHub | Rol |
 |---|---|---|
-| `[ ]` | `[ ]` | `[ ]` |
+| `[ ]` | [RichardEsteban](https://github.com/RichardEsteban) | Contratos, agente e interfaz |
 
 Al menos un integrante es peruano o reside en Perú.
 

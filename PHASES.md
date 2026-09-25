@@ -32,7 +32,7 @@ Ventana de desarrollo: 19-25 de setiembre de 2026. Checkpoint intermedio obligat
 
 - [x] Interfaz web en `web/`: crear factura, conectar Freighter, ver estado y pagar ahora (lecturas verificadas contra testnet; la firma con Freighter aún no se probó con la extensión)
 - [x] Simulador: compara pagar el día 1 contra el resultado del agente (5 pruebas); muestra que ~50% de los escenarios salen peor que pagar el día 1
-- [ ] Completar los `[ ]` del `README.md` (evidencia on-chain, equipo, commit base)
+- [x] Completar el `README.md`: evidencia on-chain, commit base (`9e2243e`), terceros con licencia. Falta solo el nombre real del equipo
 - [ ] Grabar el video demo (sin límite de duración, evalúa el jurado)
 - [ ] Grabar el video pitch (máximo 3 minutos, para el Demo Day)
 - [ ] Subir el proyecto al formulario oficial del hackathon
