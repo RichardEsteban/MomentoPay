@@ -63,17 +63,20 @@ fn setup() -> Setup {
     let token_admin = token::StellarAssetClient::new(&env, &token);
     token_admin.mint(&payer, &3_000_000_000); // 300.0000000 unidades
 
-    let vault_id = env.register(InvoiceVault, ());
-    let vault = InvoiceVaultClient::new(&env, &vault_id);
-
-    vault.init(
-        &admin,
-        &oracle,
-        &(2 * DAY),  // max_oracle_age_secs
-        &2_000u32,   // max_agent_fee_bps (20% del ahorro)
-        &500u32,     // min_buffer_bps (5% mínimo de colchón)
-        &DAY,        // safety_margin_secs
+    // El vault se configura en el constructor: no hay una función init que
+    // alguien pueda llamar antes o después del despliegue.
+    let vault_id = env.register(
+        InvoiceVault,
+        (
+            admin.clone(),
+            oracle.clone(),
+            2 * DAY,   // max_oracle_age_secs
+            2_000u32,  // max_agent_fee_bps (20% del ahorro)
+            500u32,    // min_buffer_bps (5% mínimo de colchón)
+            DAY,       // safety_margin_secs
+        ),
     );
+    let vault = InvoiceVaultClient::new(&env, &vault_id);
 
     let oracle_client = MockOracleClient::new(&env, &oracle);
     oracle_client.set_price(&RATE_3_8, &env.ledger().timestamp());
@@ -273,4 +276,72 @@ fn the_window_must_leave_room_before_the_due_date() {
         &touching_due_date,
     );
     assert!(result.is_err(), "la ventana no debería poder tocar el vencimiento");
+}
+
+#[test]
+fn top_up_adds_to_the_deposit() {
+    let s = setup();
+    let now = s.env.ledger().timestamp();
+
+    let id = s.vault.create_invoice(
+        &s.payer,
+        &s.payee,
+        &s.agent,
+        &s.token,
+        &INVOICE_PEN,
+        &2_800_000_000, // deja 20 unidades libres en la billetera del pagador
+        &default_policy(now, 100, 1_500, 2_000),
+    );
+    s.vault.top_up(&id, &100_000_000);
+
+    assert_eq!(s.vault.get_invoice(&id).deposit, 2_900_000_000);
+}
+
+#[test]
+fn invoice_and_contract_storage_get_their_ttl_extended() {
+    let s = setup();
+    let now = s.env.ledger().timestamp();
+
+    let id = s.vault.create_invoice(
+        &s.payer,
+        &s.payee,
+        &s.agent,
+        &s.token,
+        &INVOICE_PEN,
+        &3_000_000_000,
+        &default_policy(now, 100, 1_500, 2_000),
+    );
+
+    let (invoice_ttl, instance_ttl) = s.env.as_contract(&s.vault.address, || {
+        (
+            s.env.storage().persistent().get_ttl(&DataKey::Invoice(id)),
+            s.env.storage().instance().get_ttl(),
+        )
+    });
+    assert!(invoice_ttl >= TTL_THRESHOLD, "la factura debe vivir al menos 30 días");
+    assert!(instance_ttl >= TTL_THRESHOLD, "el contrato debe vivir al menos 30 días");
+}
+
+#[test]
+fn an_extreme_price_move_saturates_instead_of_wrapping() {
+    let s = setup();
+    let now = s.env.ledger().timestamp();
+
+    let id = s.vault.create_invoice(
+        &s.payer,
+        &s.payee,
+        &s.agent,
+        &s.token,
+        &INVOICE_PEN,
+        &3_000_000_000,
+        &default_policy(now, 100, 1_500, 2_000),
+    );
+
+    // El dólar se desploma: el ahorro es tan negativo que no cabe en i32.
+    // Debe quedar en el mínimo (y activar el stop-loss), no dar la vuelta a positivo.
+    set_price(&s, 1);
+    let quote = s.vault.quote(&id);
+    assert_eq!(quote.savings_bps, i32::MIN);
+    assert!(quote.stop_loss_hit);
+    assert!(!quote.can_agent_execute);
 }

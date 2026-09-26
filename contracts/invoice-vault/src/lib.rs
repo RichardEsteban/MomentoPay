@@ -21,6 +21,12 @@ const BPS_DENOM: i128 = 10_000;
 /// Escala de precios: 7 decimales, igual que los tokens de Stellar.
 const RATE_SCALE: i128 = 10_000_000;
 
+/// Un ledger de Stellar dura ~5 segundos: 17.280 ledgers ≈ 1 día.
+const DAY_LEDGERS: u32 = 17_280;
+/// Si a una entrada le quedan menos de 30 días de vida, se extiende a 60.
+const TTL_THRESHOLD: u32 = 30 * DAY_LEDGERS;
+const TTL_EXTEND_TO: u32 = 60 * DAY_LEDGERS;
+
 /// Interfaz mínima que debe cumplir el contrato de precios (real o simulado
 /// en la Fase 2). Devuelve el precio de 1 USDC en PEN, con 7 decimales, y el
 /// timestamp (unix) al que corresponde ese precio.
@@ -34,8 +40,10 @@ pub struct InvoiceVault;
 
 #[contractimpl]
 impl InvoiceVault {
-    /// Configura el contrato. Solo se puede llamar una vez.
-    pub fn init(
+    /// Configura el contrato al desplegarlo. Al ser un constructor, Soroban lo
+    /// ejecuta una sola vez y en el mismo paso del despliegue: nadie puede
+    /// inicializarlo antes que el desplegador ni volver a inicializarlo.
+    pub fn __constructor(
         env: Env,
         admin: Address,
         oracle: Address,
@@ -44,11 +52,6 @@ impl InvoiceVault {
         min_buffer_bps: u32,
         safety_margin_secs: u64,
     ) {
-        if env.storage().instance().has(&DataKey::Config) {
-            panic_with(&env, VaultError::AlreadyInitialized);
-        }
-        admin.require_auth();
-
         let config = Config {
             admin,
             oracle,
@@ -59,6 +62,7 @@ impl InvoiceVault {
         };
         env.storage().instance().set(&DataKey::Config, &config);
         env.storage().instance().set(&DataKey::NextId, &0u64);
+        bump_instance(&env);
     }
 
     /// Crea una factura: bloquea el depósito del pagador y fija la línea base
@@ -85,9 +89,8 @@ impl InvoiceVault {
             panic_with(&env, VaultError::InvalidFee);
         }
         let now = env.ledger().timestamp();
-        if policy.window_end <= now
-            || policy.window_end + config.safety_margin_secs > policy.due_ts
-        {
+        let window_plus_margin = add_u64(&env, policy.window_end, config.safety_margin_secs);
+        if policy.window_end <= now || window_plus_margin > policy.due_ts {
             panic_with(&env, VaultError::InvalidWindow);
         }
         if amount_pen_e7 <= 0 || deposit <= 0 {
@@ -96,15 +99,18 @@ impl InvoiceVault {
 
         let (rate_e7, _) = read_oracle(&env, &config);
         let base_required = required_usdc(&env, amount_pen_e7, rate_e7);
-        let min_deposit =
-            checked_mul(&env, base_required, BPS_DENOM + config.min_buffer_bps as i128)
-                / BPS_DENOM;
+        let buffer_factor = add(&env, BPS_DENOM, config.min_buffer_bps as i128);
+        let min_deposit = mul(&env, base_required, buffer_factor) / BPS_DENOM;
         if deposit < min_deposit {
             panic_with(&env, VaultError::InsufficientBuffer);
         }
 
         let id: u64 = env.storage().instance().get(&DataKey::NextId).unwrap_or(0);
-        env.storage().instance().set(&DataKey::NextId, &(id + 1));
+        let next_id = match id.checked_add(1) {
+            Some(n) => n,
+            None => panic_with(&env, VaultError::Overflow),
+        };
+        env.storage().instance().set(&DataKey::NextId, &next_id);
 
         // El depósito se bloquea de inmediato: la garantía existe desde el
         // primer bloque, no solo cuando el agente decide actuar.
@@ -131,6 +137,7 @@ impl InvoiceVault {
             agent_fee_bps: policy.agent_fee_bps,
         };
         env.storage().persistent().set(&DataKey::Invoice(id), &invoice);
+        bump_invoice(&env, id);
         id
     }
 
@@ -149,8 +156,9 @@ impl InvoiceVault {
             &env.current_contract_address(),
             &amount,
         );
-        invoice.deposit += amount;
+        invoice.deposit = add(&env, invoice.deposit, amount);
         env.storage().persistent().set(&DataKey::Invoice(id), &invoice);
+        bump_invoice(&env, id);
     }
 
     /// Lectura de solo consulta: cuánto costaría pagar hoy y si el agente ya
@@ -162,7 +170,7 @@ impl InvoiceVault {
 
         let base_required = required_usdc(&env, invoice.amount_pen_e7, invoice.base_rate_e7);
         let required_now = required_usdc(&env, invoice.amount_pen_e7, rate_e7);
-        let savings_bps = savings_in_bps(base_required, required_now);
+        let savings_bps = savings_in_bps(&env, base_required, required_now);
         let stop_loss_hit = savings_bps <= -(invoice.stop_loss_bps as i32);
 
         let now = env.ledger().timestamp();
@@ -196,7 +204,7 @@ impl InvoiceVault {
 
         let base_required = required_usdc(&env, invoice.amount_pen_e7, invoice.base_rate_e7);
         let required_now = required_usdc(&env, invoice.amount_pen_e7, rate_e7);
-        let savings_bps = savings_in_bps(base_required, required_now);
+        let savings_bps = savings_in_bps(&env, base_required, required_now);
         let stop_loss_hit = savings_bps <= -(invoice.stop_loss_bps as i32);
         let window_over = now >= invoice.window_end;
 
@@ -213,7 +221,7 @@ impl InvoiceVault {
             panic_with(&env, VaultError::WindowNotOverYet)
         };
 
-        settle(&env, invoice, base_required, required_now, reason)
+        settle(&env, invoice, base_required, required_now, rate_e7, reason)
     }
 
     /// El pagador decide no esperar y liquida de inmediato, al precio actual.
@@ -227,7 +235,7 @@ impl InvoiceVault {
         let (rate_e7, _) = read_oracle(&env, &config);
         let base_required = required_usdc(&env, invoice.amount_pen_e7, invoice.base_rate_e7);
         let required_now = required_usdc(&env, invoice.amount_pen_e7, rate_e7);
-        settle(&env, invoice, base_required, required_now, Reason::PayNow)
+        settle(&env, invoice, base_required, required_now, rate_e7, Reason::PayNow)
     }
 
     pub fn get_invoice(env: Env, id: u64) -> Invoice {
@@ -243,6 +251,7 @@ fn settle(
     mut invoice: Invoice,
     base_required: i128,
     required_now: i128,
+    rate_e7: i128,
     reason: Reason,
 ) -> Settlement {
     // Si el precio empeoró más allá del colchón disponible, el acreedor recibe
@@ -255,17 +264,17 @@ fn settle(
     };
 
     let positive_savings = if base_required > required_now {
-        base_required - required_now
+        sub(env, base_required, required_now)
     } else {
         0
     };
 
-    let available_after_payment = invoice.deposit - paid_to_payee;
-    let mut agent_fee = checked_mul(env, positive_savings, invoice.agent_fee_bps as i128) / BPS_DENOM;
+    let available_after_payment = sub(env, invoice.deposit, paid_to_payee);
+    let mut agent_fee = mul(env, positive_savings, invoice.agent_fee_bps as i128) / BPS_DENOM;
     if agent_fee > available_after_payment {
         agent_fee = available_after_payment;
     }
-    let refund_to_payer = available_after_payment - agent_fee;
+    let refund_to_payer = sub(env, available_after_payment, agent_fee);
 
     let token_client = token::Client::new(env, &invoice.token);
     let contract_address = env.current_contract_address();
@@ -283,6 +292,7 @@ fn settle(
     env.storage()
         .persistent()
         .set(&DataKey::Invoice(invoice.id), &invoice);
+    bump_invoice(env, invoice.id);
 
     Settlement {
         invoice_id: invoice.id,
@@ -290,11 +300,12 @@ fn settle(
         paid_to_payee,
         agent_fee,
         refund_to_payer,
-        rate_e7: if required_now == 0 { 0 } else { required_now },
+        rate_e7,
     }
 }
 
 fn get_config(env: &Env) -> Config {
+    bump_instance(env);
     match env.storage().instance().get(&DataKey::Config) {
         Some(c) => c,
         None => panic_with(env, VaultError::NotInitialized),
@@ -303,9 +314,24 @@ fn get_config(env: &Env) -> Config {
 
 fn load_invoice(env: &Env, id: u64) -> Invoice {
     match env.storage().persistent().get(&DataKey::Invoice(id)) {
-        Some(i) => i,
+        Some(i) => {
+            bump_invoice(env, id);
+            i
+        }
         None => panic_with(env, VaultError::InvoiceNotFound),
     }
+}
+
+/// Mantiene vivos los datos del contrato: sin esto, una entrada de storage
+/// caduca y se archiva, y una factura de varias semanas podría perderse.
+fn bump_instance(env: &Env) {
+    env.storage().instance().extend_ttl(TTL_THRESHOLD, TTL_EXTEND_TO);
+}
+
+fn bump_invoice(env: &Env, id: u64) {
+    env.storage()
+        .persistent()
+        .extend_ttl(&DataKey::Invoice(id), TTL_THRESHOLD, TTL_EXTEND_TO);
 }
 
 /// Pide el precio al oráculo y rechaza datos más viejos que lo permitido.
@@ -322,20 +348,54 @@ fn read_oracle(env: &Env, config: &Config) -> (i128, u64) {
 /// (PEN por 1 USDC, 7 decimales), redondeando siempre hacia arriba, a favor
 /// del acreedor.
 fn required_usdc(env: &Env, amount_pen_e7: i128, rate_e7: i128) -> i128 {
-    let numerator = checked_mul(env, amount_pen_e7, RATE_SCALE);
+    let numerator = mul(env, amount_pen_e7, RATE_SCALE);
     ceil_div(env, numerator, rate_e7)
 }
 
-/// Ahorro frente a la línea base, en puntos básicos. Negativo si el precio empeoró.
-fn savings_in_bps(base_required: i128, required_now: i128) -> i32 {
+/// Ahorro frente a la línea base, en puntos básicos. Negativo si el precio
+/// empeoró. Se limita al rango de `i32` para que un precio extremo nunca
+/// desborde ni cambie de signo al convertir.
+fn savings_in_bps(env: &Env, base_required: i128, required_now: i128) -> i32 {
     if base_required == 0 {
         return 0;
     }
-    (((base_required - required_now) * BPS_DENOM) / base_required) as i32
+    let diff = match base_required.checked_sub(required_now) {
+        Some(d) => d,
+        None => panic_with(env, VaultError::Overflow),
+    };
+    let bps = mul(env, diff, BPS_DENOM) / base_required;
+    if bps > i32::MAX as i128 {
+        i32::MAX
+    } else if bps < i32::MIN as i128 {
+        i32::MIN
+    } else {
+        bps as i32
+    }
 }
 
-fn checked_mul(env: &Env, a: i128, b: i128) -> i128 {
+fn add(env: &Env, a: i128, b: i128) -> i128 {
+    match a.checked_add(b) {
+        Some(v) => v,
+        None => panic_with(env, VaultError::Overflow),
+    }
+}
+
+fn sub(env: &Env, a: i128, b: i128) -> i128 {
+    match a.checked_sub(b) {
+        Some(v) => v,
+        None => panic_with(env, VaultError::Overflow),
+    }
+}
+
+fn mul(env: &Env, a: i128, b: i128) -> i128 {
     match a.checked_mul(b) {
+        Some(v) => v,
+        None => panic_with(env, VaultError::Overflow),
+    }
+}
+
+fn add_u64(env: &Env, a: u64, b: u64) -> u64 {
+    match a.checked_add(b) {
         Some(v) => v,
         None => panic_with(env, VaultError::Overflow),
     }
@@ -345,7 +405,8 @@ fn ceil_div(env: &Env, a: i128, b: i128) -> i128 {
     if b <= 0 {
         panic_with(env, VaultError::Overflow);
     }
-    (a + b - 1) / b
+    let rounded = add(env, a, sub(env, b, 1));
+    rounded / b
 }
 
 fn panic_with(env: &Env, code: VaultError) -> ! {
