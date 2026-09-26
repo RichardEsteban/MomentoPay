@@ -45,6 +45,12 @@ Si aparece un buen momento, el agente paga y **el ahorro queda para ti**. Si no 
 - Muestra una forma segura de delegar dinero a agentes de IA: el agente decide *cuándo*, pero nunca puede llevarse el dinero.
 - Usa Stellar, donde las comisiones de red son mínimas y permiten que el agente revise el precio con frecuencia.
 
+## Qué aporta hoy y qué no
+
+- **Aporta:** delegar el momento del pago a un agente **sin arriesgar la factura** (los fondos están bloqueados y solo pueden ir al acreedor), un **plan claro y explicado en español** de cada decisión, **protección** (si el precio empeora demasiado se paga de inmediato) y una **auditoría** verificable en la red.
+- **No aporta por sí solo:** un ahorro esperado. Con un tipo de cambio que se mueve al azar, esperar reparte el resultado entre mejores y peores casos (lo muestra el simulador). El ahorro previsible vendría de descuentos por pronto pago del proveedor o de mejor ejecución de rutas de pago, que están en los próximos pasos.
+- **Precio real como referencia:** el oráculo de testnet es simulado, pero el comando `npm run cli -- sync-price` lo alimenta con el tipo de cambio real USD/PEN (fuente pública open.er-api.com), así que la demo parte de un valor de mercado real.
+
 ## ¿Cómo funciona?
 
 1. **Subes tu factura.** Una IA lee la foto y extrae el monto, quién cobra y la fecha de vencimiento.
@@ -183,7 +189,7 @@ Ventana de desarrollo: 19 al 25 de setiembre de 2026. **Commit base: `9e2243e`**
 |---|---|---|
 | `contracts/invoice-vault` | Contrato Soroban con bloqueo de fondos, ventana, pago del agente o por plazo, stop-loss y reparto | Desplegado en testnet, 9 pruebas |
 | `contracts/mock-oracle` | Oráculo simulado USDC/PEN | Desplegado en testnet, 1 prueba |
-| `agent/` | Agente vigilante con regla determinista, cliente del contrato, Gemini y auditoría | Probado de extremo a extremo en testnet, 7 pruebas |
+| `agent/` | Agente vigilante con regla determinista, cliente del contrato, Gemini y auditoría | Probado de extremo a extremo en testnet, 11 pruebas |
 | `web/` | Interfaz con Freighter y simulador | Lecturas verificadas contra testnet, 5 pruebas del simulador |
 
 Pendiente y declarado: la lectura de una factura real con Gemini y la firma con Freighter desde la interfaz no se probaron de extremo a extremo antes de esta entrega.

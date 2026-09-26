@@ -34,7 +34,9 @@ Las direcciones de los contratos y cuentas están en [`../deployments/testnet.js
 ```bash
 npm test                                   # pruebas de la regla de decisión
 npm run cli -- balances                    # saldos de las cuentas de prueba
-npm run cli -- create-demo --window-secs 150   # crea una factura de 950 PEN con 300 USDC bloqueados
+npm run cli -- demo                        # TODO el flujo de una vez: precio base, factura, mejora del precio y agente
+npm run cli -- sync-price                  # publica el tipo de cambio REAL USD/PEN en el oráculo simulado
+npm run cli -- create-demo --window-secs 150   # solo crea una factura de 950 PEN con 300 USDC bloqueados
 npm run cli -- set-price 3.9               # publica un precio en el oráculo simulado
 npm run cli -- status 0                    # estado y cotización de la factura 0
 npm run cli -- watch 0 --poll 10           # el agente vigila y paga en el mejor momento
@@ -51,5 +53,6 @@ src/chain.js      Llamadas al contrato en testnet (cotizar, ejecutar, crear fact
 src/gemini.js     Lectura de facturas y explicaciones en español
 src/agent.js      Bucle de vigilancia + registro de auditoría
 src/cli.js        Comandos
-test/             Pruebas de la regla de decisión
+src/fx.js         Tipo de cambio real USD/PEN (fuente pública, sin clave)
+test/             Pruebas de la regla de decisión y del tipo de cambio
 ```

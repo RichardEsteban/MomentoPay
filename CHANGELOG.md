@@ -14,6 +14,8 @@ Registro simple de qué se construyó y cuándo, para el checkpoint y el README.
 
 - **2026-09-25**: endurecimiento del contrato según la lista de seguridad de la guía del hackathon: `__constructor` en lugar de `init` (evita que otro lo inicialice antes), aritmética con operaciones checked y ahorro saturado al rango de `i32`, y extensión de TTL en el vault y en el oráculo (verificado con una prueba que avanza 20 días y que falla si se quita la extensión). 9 pruebas del vault + 1 del oráculo. Se redesplegó (vault `CASRFEBO…R7ZEV`, oráculo `CCE4FO6H…N5IOC`) y se repitió la prueba de extremo a extremo con el mismo resultado. No se ejecutó `cargo scout-audit`.
 
+- **2026-09-25**: se revirtió el pivote de "pronto pago" (commit `c81cac3`) para volver a la idea original sin tocar contratos. Mejoras al agente: `sync-price` alimenta el oráculo con el tipo de cambio real USD/PEN y `demo` corre todo el flujo con un solo comando (4 pruebas nuevas, 11 en total). El README aclara qué aporta hoy el producto y qué no.
+
 ## Fase 3 — Interfaz, simulador y entregables finales
 
 - **2026-09-23**: interfaz web (React + Vite) con creación de factura, seguimiento, "pagar ahora" y simulador. El simulador mostró que con un tipo de cambio aleatorio el usuario termina mejor en ~50% de los casos y peor en ~50% (mediana cercana a cero), por lo que se corrigió el README que prometía "nunca peor que pagar el día 1" y se replantearon las fuentes de ahorro (descuentos por pronto pago, mejor ejecución). Pendiente: probar la firma con Freighter, video demo, video pitch y formulario.
