@@ -177,3 +177,6 @@ code { background: #fff; border: 1px solid var(--line); padding: 1px 6px; border
 .wa-send { background: #00a884; }
 .wa-send:hover:not(:disabled) { background: #008f72; }
 @media (prefers-reduced-motion: reduce) { .wa-typing i { animation: none; opacity: 0.6; } }
+
+.two.three { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 480px) { .two.three { grid-template-columns: 1fr; } }

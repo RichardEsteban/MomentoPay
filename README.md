@@ -166,14 +166,37 @@ Nota: el contrato se desplegó dos veces. La primera versión (`CBKBFHC3...S4E5K
 - **Retiro a Yape o débito:** no existe en testnet. Se propone como siguiente paso, mediante un partner regulado.
 - **Riesgo residual:** si el precio se mueve mucho más allá del colchón antes de que se active el límite de pérdida, el pago podría quedar corto. Se reduce con el colchón mínimo y el límite de pérdida, pero no desaparece.
 
+## Viabilidad y hoja de ruta
+
+**El problema del ahorro, dicho sin rodeos.** Con un tipo de cambio que se mueve al azar, esperar el mejor momento no crea ahorro por sí solo (lo muestra el simulador). Por eso el pivote del producto es el **pronto pago con descuento**, donde el ahorro sale de un beneficio real y no de adivinar el mercado.
+
+**Cómo funciona el pronto pago.** El proveedor ofrece un descuento que baja con el tiempo: pagar hoy cuesta menos, pagar al final cuesta el precio completo. Es un intercambio que conviene a los dos:
+- El **proveedor** cobra antes y con certeza. Los fondos bloqueados en el contrato son esa garantía.
+- El **comprador** se queda con el descuento.
+- El **agente** decide el equilibrio: cobrar el descuento ya o esperar solo si el tipo de cambio compensa lo que se pierde.
+
+Este tipo de términos ya existe en el crédito comercial (por ejemplo "2/10 neto 30": 2% de descuento si se paga en 10 días). En el simulador, con un descuento del 1% al 3% todos los escenarios terminan mejor que pagar el día 1, y sin descuento la mitad termina peor.
+
+**Estado honesto:** el descuento está **modelado en el simulador, no implementado en el contrato desplegado**. La versión siguiente añade una curva de descuento a `InvoicePolicy`, con dos condiciones de seguridad: un tope de descuento en la configuración y la firma del proveedor (`payee.require_auth()`), para que nadie pueda imponer un descuento a quien cobra.
+
+| Pregunta | Respuesta |
+|---|---|
+| ¿Quién paga? | La pyme compradora, que se queda con el descuento menos una comisión sobre ese ahorro (hoy 20%, con tope configurable) |
+| ¿Por qué lo acepta el proveedor? | Cobra antes y con el pago ya bloqueado. A validar: cuánto descuento acepta según su costo de financiarse |
+| ¿Cuánto cuesta operarlo? | Las comisiones de red de Stellar son mínimas; el costo principal es el modelo de lenguaje, solo para leer facturas y explicar |
+| ¿Qué riesgos hay? | El proveedor puede no querer descontar; el retiro a Yape o cuenta bancaria necesita un partner regulado; hoy el oráculo de precios es simulado |
+| ¿Qué NO hace? | No custodia dinero de terceros fuera del contrato, no ofrece rendimientos ni actúa como inversión |
+
+**Plan de 90 días**
+1. **Semanas 1-3, validar:** entrevistar a 5 pymes compradoras y 5 proveedores. Medir qué descuento aceptan y con qué plazo.
+2. **Semanas 4-8, construir:** curva de descuento con firma del proveedor en el contrato, oráculo real de USDC/PEN y lectura de la condición de descuento desde la factura con Gemini.
+3. **Semanas 9-12, piloto:** 3 pymes en testnet con facturas reales de ejemplo; después, postulación a financiamiento del ecosistema (Instawards / SCF).
+
 ## Próximos pasos
 
 - **WhatsApp real.** La pestaña *Chat* de la web ya simula la experiencia (foto de la factura, propuesta, confirmación y aviso de pago). Para conectarla a WhatsApp de verdad: sandbox de Twilio para pruebas o la API oficial de WhatsApp Business (Meta) para producción, con Gemini leyendo la foto y el agente enviando los avisos. La firma seguiría en la billetera del usuario mediante un enlace a la web, porque WhatsApp no puede firmar transacciones.
-
-1. Descuentos por pronto pago definidos por el proveedor.
-2. Retiro del ahorro a Yape o cuenta bancaria.
-3. Pagos entre pymes y sus proveedores.
-4. Postulación a programas de financiamiento del ecosistema.
+- Retiro del ahorro a Yape o cuenta bancaria mediante un partner regulado.
+- Pagos entre pymes y sus proveedores a escala, con el pronto pago como producto principal.
 
 ## Qué se construyó durante el hackathon
 
