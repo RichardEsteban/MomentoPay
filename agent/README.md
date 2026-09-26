@@ -24,7 +24,7 @@ Completa `agent/.env` (está en `.gitignore`, nunca se sube):
 | Variable | Qué es |
 |---|---|
 | `GEMINI_API_KEY` | Tu clave de [Google AI Studio](https://aistudio.google.com/apikey) |
-| `GEMINI_MODEL` | Opcional. Por defecto `gemini-2.5-flash`; cámbialo si ese modelo ya no está disponible |
+| `GEMINI_MODEL` | Opcional. Por defecto `gemini-3.8-flash` (el 2.5 ya no está disponible para cuentas nuevas); cámbialo si tu cuenta usa otro |
 | `AGENT_SECRET`, `PAYER_SECRET`, `ADMIN_SECRET` | Claves de las cuentas de testnet (solo dinero de prueba) |
 
 Las direcciones de los contratos y cuentas están en [`../deployments/testnet.json`](../deployments/testnet.json).

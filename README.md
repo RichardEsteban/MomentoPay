@@ -192,7 +192,7 @@ Ventana de desarrollo: 19 al 25 de setiembre de 2026. **Commit base: `9e2243e`**
 | `agent/` | Agente vigilante con regla determinista, cliente del contrato, Gemini y auditoría | Probado de extremo a extremo en testnet, 11 pruebas |
 | `web/` | Interfaz con Freighter y simulador | Lecturas verificadas contra testnet, 5 pruebas del simulador |
 
-Pendiente y declarado: la lectura de una factura real con Gemini y la firma con Freighter desde la interfaz no se probaron de extremo a extremo antes de esta entrega.
+Pendiente y declarado: la firma con Freighter desde la interfaz no se probó de extremo a extremo antes de esta entrega. La lectura de facturas con Gemini sí se probó: con una imagen de ejemplo extrajo correctamente acreedor, monto, moneda y vencimiento.
 
 ## Cómo probarlo
 

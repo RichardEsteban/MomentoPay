@@ -3,7 +3,7 @@ import { extname } from 'node:path';
 import { GoogleGenAI, Type } from '@google/genai';
 
 // El modelo se puede cambiar sin tocar el código: GEMINI_MODEL en agent/.env.
-const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+const MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 
 const MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
 
@@ -61,17 +61,31 @@ function templateExplanation({ code, savingsBps, thresholdBps }) {
   }
 }
 
+// Significado exacto de cada decisión, para que el modelo no la reinterprete
+// (por ejemplo, con stop-loss el sistema PAGA de inmediato; no detiene nada).
+const MEANING = {
+  TARGET: 'El agente PAGÓ la factura ahora porque el ahorro alcanzó lo que exigía en ese momento.',
+  DEADLINE: 'Se acabó el plazo elegido y la factura se PAGÓ completa al precio de mercado de ese día.',
+  STOP_LOSS: 'El precio empeoró más de lo tolerado, así que se PAGÓ la factura de inmediato para asegurar que quede pagada completa.',
+  WAIT: 'El agente sigue ESPERANDO un mejor precio; todavía no se pagó nada.',
+};
+
 /** Explica en español, en una o dos frases, lo que decidió la regla determinista. */
 export async function explainDecision(ctx) {
   const ai = client();
   if (!ai) return templateExplanation(ctx);
+  // El umbral de ahorro solo importa cuando se decide por ahorro; con stop-loss o
+  // fin de plazo confundiría al modelo (lo tomaría por el límite de pérdida).
+  const facts = ctx.code === 'TARGET' || ctx.code === 'WAIT' ? ctx : { code: ctx.code, savingsBps: ctx.savingsBps };
   try {
     const response = await ai.models.generateContent({
       model: MODEL,
       contents:
         'Eres el asistente de pagos Momento Pay. Explica a una persona sin conocimientos técnicos, ' +
         'en español y en máximo dos frases, la decisión que ya tomó el sistema. No des consejos de ' +
-        'inversión ni prometas ganancias. Datos de la decisión: ' + JSON.stringify(ctx),
+        'inversión ni prometas ganancias, y no afirmes nada que no esté en estos datos. ' +
+        `Significado de la decisión: ${MEANING[ctx.code] ?? ''} ` +
+        'Porcentajes en puntos básicos (100 = 1%). Datos: ' + JSON.stringify(facts),
     });
     return response.text.trim();
   } catch {
