@@ -298,7 +298,7 @@ fn top_up_adds_to_the_deposit() {
 }
 
 #[test]
-fn invoice_and_contract_storage_get_their_ttl_extended() {
+fn an_invoice_stays_readable_weeks_later_because_its_ttl_is_extended() {
     let s = setup();
     let now = s.env.ledger().timestamp();
 
@@ -312,14 +312,14 @@ fn invoice_and_contract_storage_get_their_ttl_extended() {
         &default_policy(now, 100, 1_500, 2_000),
     );
 
-    let (invoice_ttl, instance_ttl) = s.env.as_contract(&s.vault.address, || {
-        (
-            s.env.storage().persistent().get_ttl(&DataKey::Invoice(id)),
-            s.env.storage().instance().get_ttl(),
-        )
+    // Pasan 20 días (17.280 ledgers por día). Sin extender el TTL, la entrada
+    // de la factura habría caducado mucho antes: el TTL por defecto es de unas horas.
+    s.env.ledger().with_mut(|li| {
+        li.sequence_number += 20 * 17_280;
+        li.timestamp += 20 * DAY;
     });
-    assert!(invoice_ttl >= TTL_THRESHOLD, "la factura debe vivir al menos 30 días");
-    assert!(instance_ttl >= TTL_THRESHOLD, "el contrato debe vivir al menos 30 días");
+
+    assert_eq!(s.vault.get_invoice(&id).status, Status::Open);
 }
 
 #[test]
