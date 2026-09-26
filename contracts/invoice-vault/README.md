@@ -17,17 +17,11 @@ flujo completo en lenguaje simple.
 
 ```bash
 cd contracts/invoice-vault
-cargo test
+cargo test --workspace
 cargo build --release --target wasm32v1-none
 ```
 
 El `.wasm` queda en `../../target/wasm32v1-none/release/invoice_vault.wasm`.
-
-> Estas pruebas y este build se escribieron sin poder ejecutar `cargo` en la
-> máquina donde se generó el código (no había toolchain de Rust instalado).
-> Si algo no compila, es casi seguro un desajuste de nombres entre versiones
-> de `soroban-sdk` (por ejemplo `register_stellar_asset_contract_v2` o
-> `env.register`) — el mensaje de error de `cargo` señala la línea exacta.
 
 ## Desplegar en testnet
 
@@ -35,7 +29,12 @@ El `.wasm` queda en `../../target/wasm32v1-none/release/invoice_vault.wasm`.
 stellar keys generate admin --network testnet --fund
 
 # El vault se configura en el constructor, en el mismo paso del despliegue.
-stellar contract deploy   --wasm ../../target/wasm32v1-none/release/invoice_vault.wasm   --source admin --network testnet   -- --admin <G...admin> --oracle <C...oráculo>   --max_oracle_age_secs 172800 --max_agent_fee_bps 2000   --min_buffer_bps 500 --safety_margin_secs 86400
+stellar contract deploy \
+  --wasm ../../target/wasm32v1-none/release/invoice_vault.wasm \
+  --source admin --network testnet \
+  -- --admin <G...admin> --oracle <C...oraculo> \
+  --max_oracle_age_secs 172800 --max_agent_fee_bps 2000 \
+  --min_buffer_bps 500 --safety_margin_secs 86400
 ```
 
 El oráculo (`contracts/mock-oracle`) se despliega antes con `stellar contract deploy` y su ID va en `--oracle`.
