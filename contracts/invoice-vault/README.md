@@ -34,23 +34,16 @@ El `.wasm` queda en `../../target/wasm32v1-none/release/invoice_vault.wasm`.
 ```bash
 stellar keys generate admin --network testnet --fund
 
-stellar contract deploy \
-  --wasm ../../target/wasm32v1-none/release/invoice_vault.wasm \
-  --source admin \
-  --network testnet
-
-# Guarda el Contract ID que devuelve el comando anterior y complétalo
-# en el README del proyecto y en CHANGELOG.md.
+# El vault se configura en el constructor, en el mismo paso del despliegue.
+stellar contract deploy   --wasm ../../target/wasm32v1-none/release/invoice_vault.wasm   --source admin --network testnet   -- --admin <G...admin> --oracle <C...oráculo>   --max_oracle_age_secs 172800 --max_agent_fee_bps 2000   --min_buffer_bps 500 --safety_margin_secs 86400
 ```
 
-Luego se llama a `init(admin, oracle, max_oracle_age_secs, max_agent_fee_bps, min_buffer_bps, safety_margin_secs)`
-con `stellar contract invoke`, usando el contrato de precios de la Fase 2
-(`MockOracle` mientras no haya uno real confirmado en testnet).
+El oráculo (`contracts/mock-oracle`) se despliega antes con `stellar contract deploy` y su ID va en `--oracle`.
 
 ## Interfaz del contrato
 
 ```rust
-init(admin, oracle, max_oracle_age_secs, max_agent_fee_bps, min_buffer_bps, safety_margin_secs)
+__constructor(admin, oracle, max_oracle_age_secs, max_agent_fee_bps, min_buffer_bps, safety_margin_secs)  // en el despliegue
 
 create_invoice(payer, payee, agent, token, amount_pen_e7, deposit, policy: InvoicePolicy) -> u64
 

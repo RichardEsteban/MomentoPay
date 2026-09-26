@@ -136,13 +136,28 @@ MomentoPay/
 
 | Elemento | Valor |
 |---|---|
-| ID del contrato | [`CBKBFHC3D76MTOE5DMBJVS64HY2LBVTOSG2EKTJH7E2XWO2PJKQS4E5K`](https://lab.stellar.org/r/testnet/contract/CBKBFHC3D76MTOE5DMBJVS64HY2LBVTOSG2EKTJH7E2XWO2PJKQS4E5K) |
-| Transacción de despliegue | [`391b7158...04e8b06`](https://stellar.expert/explorer/testnet/tx/391b715850097588664522f61b7e9836e7bfbe1028f88138c1bc4986f04e8b06) |
-| Contrato del oráculo simulado | [`CCH6FB4MCOQ6TPXKWBJFPLUU6ZQUKDBKHSYBQUGOB2CSDXB3SX7XMFZE`](https://lab.stellar.org/r/testnet/contract/CCH6FB4MCOQ6TPXKWBJFPLUU6ZQUKDBKHSYBQUGOB2CSDXB3SX7XMFZE) |
-| Transacción de creación de factura | [`4808d08f...3576885d`](https://stellar.expert/explorer/testnet/tx/4808d08fc6693c8b149e79a3b1c194cb81af1c0a7e312edcd324965d3576885d) |
-| Transacción de pago (ejecutada por el agente) | [`58113f00...c23d24`](https://stellar.expert/explorer/testnet/tx/58113f005253b18d56c4e9c76a34a8a16082f36bdce7a9649095dc52c7a23d24) |
+| Contrato `InvoiceVault` | [`CASRFEBOHFIIPII43LNGWKJZGXOZNVXFOKKTJ7V4W3QMXL6ETSFR7ZEV`](https://lab.stellar.org/r/testnet/contract/CASRFEBOHFIIPII43LNGWKJZGXOZNVXFOKKTJ7V4W3QMXL6ETSFR7ZEV) |
+| Contrato del oráculo simulado | [`CCE4FO6H6GK5WOQQWZEUTLYTXYY3Y5G6MOZV3CGDM4ZTXSQ3MDRN5IOC`](https://lab.stellar.org/r/testnet/contract/CCE4FO6H6GK5WOQQWZEUTLYTXYY3Y5G6MOZV3CGDM4ZTXSQ3MDRN5IOC) |
+| Token de prueba (MPUSDC) | [`CDKU7XWADWJ7EMAQRGN2MQN5PVJQQNS6QKLXPG6DCVQ27TDFHMB2VXEP`](https://lab.stellar.org/r/testnet/contract/CDKU7XWADWJ7EMAQRGN2MQN5PVJQQNS6QKLXPG6DCVQ27TDFHMB2VXEP) |
+| Transacción de creación de factura | [`57131407...da27c45`](https://stellar.expert/explorer/testnet/tx/571314076930301c4623ef82aa926acb3bbc6ab0fa150e59e20d740b1da27c45) |
+| Transacción de pago (ejecutada por el agente) | [`0fe49897...e13550a`](https://stellar.expert/explorer/testnet/tx/0fe498970cbf419be0b1341f0f8bfc0053ff7fe9fb61a22828886ee5cd13550a) |
 
 Resultado de esa liquidación: el acreedor recibió 243.59 USDC de prueba (la factura completa al precio mejorado), el agente cobró 1.28 USDC (20% del ahorro) y el pagador recuperó 55.13 USDC.
+
+Nota: el contrato se desplegó dos veces. La primera versión (`CBKBFHC3...S4E5K`) usaba una función `init`; la actual usa `__constructor`, aritmética checked y extensión de TTL, siguiendo la lista de seguridad de la guía del hackathon. La versión anterior queda solo como historial.
+
+## Seguridad del contrato (lista de la guía del hackathon)
+
+| Punto | Estado |
+|---|---|
+| `require_auth()` en funciones privilegiadas | Cumple. El oráculo simulado no lo exige a propósito (es de demostración para testnet) |
+| Inicialización con `__constructor` | Cumple: se configura en el despliegue, nadie puede inicializarlo antes ni después |
+| Aritmética con operaciones checked | Cumple: sumas, restas y multiplicaciones con `checked_*`; el ahorro se limita al rango de `i32` en vez de desbordar |
+| Claves de storage con enum `#[contracttype]` | Cumple (`DataKey`) |
+| TTL extendido en las funciones que tocan storage | Cumple: una prueba avanza 20 días y comprueba que la factura sigue accesible; sin la extensión falla |
+| `#![no_std]` | Cumple |
+| `opt-level = "z"` y `lto = true` | Cumple (perfil `release` de la raíz) |
+| `cargo scout-audit` | **No se ejecutó.** Compilar esa herramienta agota la memoria del equipo de desarrollo |
 
 ## Límites que declaramos
 
@@ -166,7 +181,7 @@ Ventana de desarrollo: 19 al 25 de setiembre de 2026. **Commit base: `9e2243e`**
 
 | Parte | Qué es | Estado |
 |---|---|---|
-| `contracts/invoice-vault` | Contrato Soroban con bloqueo de fondos, ventana, pago del agente o por plazo, stop-loss y reparto | Desplegado en testnet, 6 pruebas |
+| `contracts/invoice-vault` | Contrato Soroban con bloqueo de fondos, ventana, pago del agente o por plazo, stop-loss y reparto | Desplegado en testnet, 9 pruebas |
 | `contracts/mock-oracle` | Oráculo simulado USDC/PEN | Desplegado en testnet, 1 prueba |
 | `agent/` | Agente vigilante con regla determinista, cliente del contrato, Gemini y auditoría | Probado de extremo a extremo en testnet, 7 pruebas |
 | `web/` | Interfaz con Freighter y simulador | Lecturas verificadas contra testnet, 5 pruebas del simulador |

@@ -6,3 +6,4 @@ node_modules
 *.wasm
 agent/audit.log.jsonl
 web/dist
+test_snapshots
