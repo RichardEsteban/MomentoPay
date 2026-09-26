@@ -32,16 +32,3 @@ test('el resumen reparte los 100 escenarios entre ganó, empató y perdió', () 
   const s = simulateMany(200, { dailyVolPct: 0.5 });
   assert.ok(Math.abs(s.pctGained + s.pctEven + s.pctLost - 100) < 1e-9);
 });
-
-test("con descuento por pronto pago el usuario sale mejor que sin descuento", () => {
-  const sin = simulateMany(400, { dailyVolPct: 0.4 });
-  const con = simulateMany(400, { dailyVolPct: 0.4, earlyDiscountPct: 2 });
-  assert.ok(con.medianUsdc > sin.medianUsdc, "la mediana debería mejorar");
-  assert.ok(con.pctGained > sin.pctGained, "deberían ser más los escenarios ganadores");
-  assert.ok(con.p10Usdc > sin.p10Usdc, "el mal escenario debería ser menos malo");
-});
-
-test("sin volatilidad, el descuento por sí solo da ahorro positivo", () => {
-  const r = simulateRun(1, { dailyVolPct: 0, earlyDiscountPct: 2 });
-  assert.ok(r.userSavingsUsdc > 0);
-});

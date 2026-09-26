@@ -34,10 +34,6 @@ export const DEFAULTS = {
   stopLossBps: 1500,
   targetBps: 300,
   agentFeeBps: 2000,
-  // Pronto pago: descuento máximo que ofrece el proveedor al pagar en el día 0.
-  // Baja linealmente hasta 0 al terminar la ventana. Es un modelo: el contrato
-  // desplegado todavía no aplica descuentos.
-  earlyDiscountPct: 0,
 };
 
 /** Simula una factura de principio a fin. Devuelve el camino de precios y el resultado. */
@@ -51,10 +47,6 @@ export function simulateRun(seed, options = {}) {
   const baseRequired = requiredE7(amountPenE7, baseRateE7);
   const invoice = { window_end: windowEndSecs, min_savings_bps: o.minSavingsBps };
   const stepVol = (o.dailyVolPct / 100) * Math.sqrt(o.stepHours / 24);
-  // Con un descuento garantizado, esperar solo compensa si el tipo de cambio da más
-  // que el descuento que se pierde: el agente no exige más ahorro que el descuento inicial.
-  const targetBps = o.earlyDiscountPct > 0 ? Math.min(o.targetBps, Math.round(o.earlyDiscountPct * 100)) : o.targetBps;
-  const discountAt = (now) => Math.round(o.earlyDiscountPct * 100 * Math.max(1 - now / windowEndSecs, 0));
 
   const path = [{ day: 0, rate: o.baseRate }];
   let rate = o.baseRate;
@@ -64,8 +56,7 @@ export function simulateRun(seed, options = {}) {
       path.push({ day: now / 86400, rate });
     }
     const rateE7 = Math.round(rate * E7);
-    // El proveedor descuenta si se paga antes: el comprador paga menos hoy que al final.
-    const required = Math.ceil((requiredE7(amountPenE7, rateE7) * (BPS - discountAt(now))) / BPS);
+    const required = requiredE7(amountPenE7, rateE7);
     // Misma aritmética entera que el contrato (división truncada hacia cero).
     const savingsBps = Math.trunc(((baseRequired - required) * BPS) / baseRequired);
     const quote = {
@@ -73,7 +64,7 @@ export function simulateRun(seed, options = {}) {
       stop_loss_hit: savingsBps <= -o.stopLossBps,
       can_agent_execute: now < windowEndSecs && savingsBps >= o.minSavingsBps,
     };
-    const d = decide({ quote, invoice, nowSecs: now, windowStartSecs: 0, targetBps });
+    const d = decide({ quote, invoice, nowSecs: now, windowStartSecs: 0, targetBps: o.targetBps });
     if (d.action === 'execute') {
       const positive = Math.max(baseRequired - required, 0);
       const fee = Math.floor((positive * o.agentFeeBps) / BPS);

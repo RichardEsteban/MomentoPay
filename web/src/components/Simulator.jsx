@@ -30,9 +30,8 @@ function PathChart({ run, baseRate, windowDays }) {
 export default function Simulator() {
   const [move, setMove] = useState(0.4);
   const [windowDays, setWindowDays] = useState(7);
-  const [discount, setDiscount] = useState(2);
 
-  const s = useMemo(() => simulateMany(300, { dailyVolPct: move, windowDays, earlyDiscountPct: discount }), [move, windowDays, discount]);
+  const s = useMemo(() => simulateMany(300, { dailyVolPct: move, windowDays }), [move, windowDays]);
   const sample = s.results.find((r) => r.code === 'TARGET') ?? s.results[0];
 
   return (
@@ -41,17 +40,11 @@ export default function Simulator() {
         ¿Conviene esperar? Probamos <b>300 recorridos posibles</b> del tipo de cambio y comparamos con haber pagado el día 1.
       </p>
 
-      <div className="two three">
+      <div className="two">
         <div>
           <label htmlFor="mv">Movimiento del tipo de cambio</label>
           <select id="mv" value={move} onChange={(e) => setMove(Number(e.target.value))}>
             {MOVES.map((m) => <option key={m.pct} value={m.pct}>{m.label} ({m.pct}% al día)</option>)}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="dc">Descuento por pronto pago del proveedor</label>
-          <select id="dc" value={discount} onChange={(e) => setDiscount(Number(e.target.value))}>
-            <option value={0}>Sin descuento</option><option value={1}>1%</option><option value={2}>2%</option><option value={3}>3%</option>
           </select>
         </div>
         <div>
@@ -72,18 +65,10 @@ export default function Simulator() {
         Resultado típico <b>{money(s.medianUsdc)}</b> · mal día <b>{money(s.p10Usdc)}</b> · peor caso <b>{money(s.worstUsdc)}</b> USDC
       </p>
 
-      {discount > 0 ? (
-        <div className="msg ok" style={{ marginTop: 0 }}>
-          Con descuento por pronto pago el ahorro deja de depender del azar: el agente lo cobra al instante y el
-          proveedor recibe su dinero antes y con certeza. <b>Es un modelo:</b> el contrato desplegado todavía no aplica
-          descuentos (siguiente versión).
-        </div>
-      ) : (
-        <div className="msg warn" style={{ marginTop: 0 }}>
-          Sin descuento, esperar no crea ahorro por sí solo: el resultado se reparte entre mejores y peores casos.
-          Lo que sí está garantizado: la factura se paga completa y el agente nunca cobra más que el ahorro.
-        </div>
-      )}
+      <div className="msg warn" style={{ marginTop: 0 }}>
+        Con un tipo de cambio que se mueve al azar, esperar no crea ahorro por sí solo. Lo que sí está garantizado:
+        la factura se paga completa y el agente nunca cobra más que el ahorro.
+      </div>
 
       <details style={{ marginTop: 12, marginBottom: 0 }}>
         <summary>Ver un ejemplo</summary>
